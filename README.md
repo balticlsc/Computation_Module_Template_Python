@@ -1,4 +1,4 @@
-# BalticLSC python module scheme
+# Computation Module Template Python
 Package `balticlsc` is supposed to help with creating modules for the 
 BalticLSC system in the python environment.
 

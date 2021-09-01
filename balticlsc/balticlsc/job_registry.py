@@ -122,3 +122,12 @@ class JobRegistry(IJobRegistry):
 
     def get_strong_pin_names(self) -> []:
         pass
+
+    def get_base_msg_uid(self):
+        pass
+
+    def get_all_msg_uids(self):
+        pass
+
+    def clear_messages(self, msg_ids):
+        pass

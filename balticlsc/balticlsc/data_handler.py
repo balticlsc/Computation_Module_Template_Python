@@ -1,8 +1,11 @@
 import abc
 import json
+from http import HTTPStatus
 from typing import Dict
 from balticlsc.balticlsc.data_handle import DataHandle
 from balticlsc.balticlsc.job_registry import JobRegistry
+from balticlsc.balticlsc.messages import Status
+from balticlsc.balticlsc.tokens_proxy import TokensProxy
 
 
 class IDataHandler(metaclass=abc.ABCMeta):
@@ -58,6 +61,7 @@ class DataHandler(IDataHandler):
 
     def __init__(self, registry: JobRegistry):
         self.__registry = registry
+        self.__tokens_proxy = TokensProxy()
 
     def obtain_data_item(self, pin_name: str) -> str or None:
         (values, sizes) = self.obtain_data_items_dim(pin_name);
@@ -81,22 +85,40 @@ class DataHandler(IDataHandler):
         return data_items, sizes
 
     def send_data_item(self, pin_name: str, data: str, is_final: bool, msg_uid: str = None) -> int:
-        pass
+        handle = self.get_data_handle(pin_name)
+        new_handle = handle.upload(data)
+        return self.send_token(pin_name, json.dumps(new_handle), is_final, msg_uid)
 
     def send_token(self, pin_name: str, values: str, is_final: bool, msg_uid: str = None) -> int:
-        pass
+        if msg_uid is None:
+            self.__registry.get_base_msg_uid()
+        return 0 if HTTPStatus.OK == self.__tokens_proxy.send_output_token(pin_name, values, msg_uid, is_final) else -1
 
     def finish_processing(self) -> int:
-        pass
-
-    def send_ack_token(self, msg_ids: [], is_final: bool) -> int:
-        pass
+        msg_ids = self.__registry.get_all_msg_uids()
+        self.__registry.set_status(Status.COMPLETED)
+        return self.send_ack_token(msg_ids, True)
 
     def fail_processing(self, note: str):
-        pass
+        msg_ids = self.__registry.get_all_msg_uids()
+        self.__registry.set_status(Status.FAILED)
+        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, True, True, note):
+            self.__registry.clear_messages(msg_ids)
+            return 0
+        return -1
+
+    def send_ack_token(self, msg_ids: [], is_final: bool) -> int:
+        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, is_final):
+            self.__registry.clear_messages(msg_ids)
+            return 0
+        return -1
 
     def check_connection(self, pin_name: str, handle: Dict[str, str] = None) -> int:
-        pass
+        try:
+            handle = self.get_data_handle(pin_name)
+            return handle.check_connection(handle)
+        except ValueError:
+            raise ValueError("Cannot check connection for a pin of type \"Direct\"")
 
     def get_data_handle(self, pin_name:str) -> DataHandle:
         pass

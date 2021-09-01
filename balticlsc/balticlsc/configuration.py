@@ -1,0 +1,3 @@
+class IConfiguration:
+
+    pass

@@ -2,7 +2,9 @@ import abc
 import json
 from http import HTTPStatus
 from typing import Dict
-from balticlsc.balticlsc.data_handle import DataHandle
+
+from balticlsc.balticlsc.configuration import IConfiguration
+from balticlsc.balticlsc.data_handle import DataHandle, MongoDBHandle
 from balticlsc.balticlsc.job_registry import JobRegistry
 from balticlsc.balticlsc.messages import Status
 from balticlsc.balticlsc.tokens_proxy import TokensProxy
@@ -59,20 +61,22 @@ class IDataHandler(metaclass=abc.ABCMeta):
 
 class DataHandler(IDataHandler):
 
-    def __init__(self, registry: JobRegistry):
+    def __init__(self, registry: JobRegistry, configuration: IConfiguration):
         self.__registry = registry
+        self.__configuration = configuration
         self.__tokens_proxy = TokensProxy()
+        self.__data_handles = {}
 
     def obtain_data_item(self, pin_name: str) -> str or None:
-        (values, sizes) = self.obtain_data_items_dim(pin_name);
-        if values is None or 0 == values.count():
+        (values, sizes) = self.obtain_data_items_dim(pin_name)
+        if values is None or 0 == len(values):
             return None
-        if sizes is None and 1 == values.count():
+        if sizes is None and 1 == len(values):
             return values[0]
         raise Exception("Improper call - more than one data item exists for the pin")
 
     def obtain_data_items(self, pin_name: str) -> []:
-        (values, sizes) = self.obtain_data_items_dim(pin_name);
+        (values, sizes) = self.obtain_data_items_dim(pin_name)
         if sizes is not None and 1 == sizes.count():
             return values
         raise Exception("Improper call - more than one dimension exists for the pin")
@@ -80,13 +84,13 @@ class DataHandler(IDataHandler):
     def obtain_data_items_dim(self, pin_name: str) -> ([], []):
         (values, sizes) = self.__registry.get_pin_values_dim(pin_name)
         values_object = list(map(lambda v: None if v is None or not v else json.load(v), values))
-        handle = self.get_data_handle(pin_name)
-        data_items = list(map(lambda vo: None if vo is None else handle.download(vo), values_object))
+        d_handle = self.get_data_handle(pin_name)
+        data_items = list(map(lambda vo: None if vo is None else d_handle.download(vo), values_object))
         return data_items, sizes
 
     def send_data_item(self, pin_name: str, data: str, is_final: bool, msg_uid: str = None) -> int:
-        handle = self.get_data_handle(pin_name)
-        new_handle = handle.upload(data)
+        d_handle = self.get_data_handle(pin_name)
+        new_handle = d_handle.upload(data)
         return self.send_token(pin_name, json.dumps(new_handle), is_final, msg_uid)
 
     def send_token(self, pin_name: str, values: str, is_final: bool, msg_uid: str = None) -> int:
@@ -115,10 +119,22 @@ class DataHandler(IDataHandler):
 
     def check_connection(self, pin_name: str, handle: Dict[str, str] = None) -> int:
         try:
-            handle = self.get_data_handle(pin_name)
-            return handle.check_connection(handle)
+            d_handle = self.get_data_handle(pin_name)
+            return d_handle.check_connection(handle)
         except ValueError:
             raise ValueError("Cannot check connection for a pin of type \"Direct\"")
 
-    def get_data_handle(self, pin_name:str) -> DataHandle:
-        pass
+    def get_data_handle(self, pin_name: str) -> DataHandle:
+        if pin_name in self.__data_handles:
+            return self.__data_handles[pin_name]
+        access_type = self.__registry.get_pin_configuration(pin_name).access_type
+        match access_type:
+            case "Direct":
+                raise ValueError("Cannot create a data handle for a pin of type \"Direct\"")
+            case "":
+                handle = MongoDBHandle(pin_name, self.__configuration)
+            case _:
+                raise NotImplementedError("AccessType (" + access_type + ") not supported by the DataHandler, has to "
+                                                                         "be handled manually")
+        self.__data_handles[pin_name] = handle
+        return handle

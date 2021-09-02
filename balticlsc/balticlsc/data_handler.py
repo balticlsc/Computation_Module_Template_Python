@@ -2,7 +2,6 @@ import abc
 import json
 from http import HTTPStatus
 from typing import Dict
-
 from balticlsc.balticlsc.configuration import IConfiguration
 from balticlsc.balticlsc.data_handle import DataHandle, MongoDBHandle
 from balticlsc.balticlsc.job_registry import JobRegistry

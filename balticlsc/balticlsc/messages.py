@@ -12,6 +12,7 @@ class InputTokenMessage:
     pin_name: str
     access_type: str
     values: str
+    token_seq_stack: []
 
 
 class Status(enum.Enum):

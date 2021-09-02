@@ -1,5 +1,8 @@
 import abc
 import enum
+import threading
+
+from balticlsc.balticlsc.configuration import IConfiguration
 from balticlsc.balticlsc.messages import Status
 
 
@@ -87,8 +90,28 @@ class PinConfiguration:
 
 class JobRegistry(IJobRegistry):
 
+    def __init__(self, configuration: IConfiguration):
+        self.__tokens = {}
+        self.__semaphore = threading.Semaphore()
+
     def get_pin_status(self, pin_name: str) -> Status:
-        pass
+        self.__semaphore.acquire()
+        try:
+            if 0 == len(self.__tokens[pin_name]):
+                return Status.IDLE
+            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name).token_multiplicity:
+                return Status.COMPLETED
+            final_token = next((t for t in self.__tokens[pin_name] if any(not s.is_final for s in t.token_seq_stack)),
+                               None)
+            if final_token is not None:
+                max_count = 1
+                for st in final_token.token_seq_stack:
+                    max_count *= st.no + 1
+                if len(self.__tokens[pin_name]) == max_count:
+                    return Status.COMPLETED
+            return Status.WORKING
+        finally:
+            self.__semaphore.release()
 
     def get_pin_tokens(self, pin_name: str) -> []:
         pass

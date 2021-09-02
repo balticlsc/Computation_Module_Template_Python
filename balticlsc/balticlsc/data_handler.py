@@ -76,7 +76,7 @@ class DataHandler(IDataHandler):
 
     def obtain_data_items(self, pin_name: str) -> []:
         (values, sizes) = self.obtain_data_items_dim(pin_name)
-        if sizes is not None and 1 == sizes.count():
+        if sizes is not None and 1 == len(sizes):
             return values
         raise Exception("Improper call - more than one dimension exists for the pin")
 

@@ -41,7 +41,7 @@ class IJobRegistry(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_pin_value(self, pin_name: str) -> str:
+    def get_pin_value(self, pin_name: str) -> str or None:
         pass
 
     @abc.abstractmethod
@@ -114,16 +114,52 @@ class JobRegistry(IJobRegistry):
             self.__semaphore.release()
 
     def get_pin_tokens(self, pin_name: str) -> []:
-        pass
+        self.__semaphore.acquire()
+        try:
+            return self.__tokens[pin_name]
+        finally:
+            self.__semaphore.release()
 
-    def get_pin_value(self, pin_name: str) -> str:
-        pass
+    def get_pin_value(self, pin_name: str) -> str or None:
+        (values, sizes) = self.get_pin_values_dim(pin_name)
+        if values is None or 0 == len(values):
+            return None
+        if sizes is None and 1 == len(values):
+            return values[0]
+        raise Exception("Improper call - more than one token exists for the pin")
 
     def get_pin_values(self, pin_name: str) -> []:
-        pass
+        (values, sizes) = self.get_pin_values_dim(pin_name)
+        if sizes is not None and 1 == len(sizes):
+            return values
+        raise Exception("Improper call - more than one dimension exists for the pin")
 
     def get_pin_values_dim(self, pin_name: str) -> ([], []):
-        pass
+        self.__semaphore.acquire()
+        try:
+            if 0 == len(self.__tokens[pin_name]):
+                return None, None
+            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name).token_multiplicity:
+                return [next(self.__tokens[pin_name]).values], None
+            max_table_counts = [0] * len(next(self.__tokens[pin_name]).token_seq_stack)
+            for m in self.__tokens[pin_name]:
+                for i in range(len(m.token_seq_stack)):
+                    if max_table_counts[i] < m.token_seq_stack[i].no:
+                        max_table_counts[i] = m.token_seq_stack[i].no
+            all_token_count = 1
+            for i in max_table_counts:
+                all_token_count *= i + 1
+            result = [None] * all_token_count
+            for m in self.__tokens[pin_name]:
+                index = 0
+                product = 1
+                for i in range(len(m.token_seq_stack)):
+                    index += max_table_counts[i] * product
+                    product *= max_table_counts[i]
+                result[index] = m.values
+            return result, max_table_counts
+        finally:
+            self.__semaphore.release()
 
     def get_progress(self) -> int:
         pass

@@ -2,6 +2,7 @@ import abc
 import enum
 import threading
 from balticlsc.balticlsc.configuration import IConfiguration
+from balticlsc.balticlsc.job_thread import JobThread
 from balticlsc.balticlsc.messages import Status, JobStatus, InputTokenMessage
 
 
@@ -94,7 +95,16 @@ class JobRegistry(IJobRegistry):
         self.__tokens = {}
         self.__status = JobStatus()
         self.__variables = {}
+        self.__job_threads = []
         self.__semaphore = threading.Semaphore()
+
+    def register_thread(self, thread: JobThread):
+        self.__semaphore.acquire()
+        try:
+            self.__job_threads.append(thread)
+            return 0
+        finally:
+            self.__semaphore.release()
 
     def get_pin_status(self, pin_name: str) -> Status:
         self.__semaphore.acquire()
@@ -234,7 +244,11 @@ class JobRegistry(IJobRegistry):
             self.__semaphore.release()
 
     def clear_messages(self, msg_ids):
-        pass
+        for msg_id in msg_ids:
+            tokens = next(ltm for ltm in self.__tokens.values() if any(msg_id == it.msg_uid for it in ltm))
+            if tokens is not None:
+                message = next(msg for msg in tokens if msg_id == msg.msg_uid)
+                tokens.remove(message)
 
     def register_token(self, msg: InputTokenMessage):
-        pass
+        self.__tokens[msg.pin_name].append(msg)

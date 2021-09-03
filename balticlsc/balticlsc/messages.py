@@ -20,3 +20,9 @@ class Status(enum.Enum):
     WORKING = 1
     COMPLETED = 2
     FAILED = 3
+
+
+class JobStatus:
+    job_instance_uid: str
+    job_progress: int
+    status: Status

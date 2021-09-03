@@ -3,7 +3,7 @@ import enum
 import threading
 
 from balticlsc.balticlsc.configuration import IConfiguration
-from balticlsc.balticlsc.messages import Status
+from balticlsc.balticlsc.messages import Status, JobStatus
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):
@@ -91,7 +91,10 @@ class PinConfiguration:
 class JobRegistry(IJobRegistry):
 
     def __init__(self, configuration: IConfiguration):
+        self.__pins = []
         self.__tokens = {}
+        self.__status = JobStatus()
+        self.__variables = {}
         self.__semaphore = threading.Semaphore()
 
     def get_pin_status(self, pin_name: str) -> Status:
@@ -162,31 +165,74 @@ class JobRegistry(IJobRegistry):
             self.__semaphore.release()
 
     def get_progress(self) -> int:
-        pass
+        self.__semaphore.acquire()
+        try:
+            return self.__status.job_progress
+        finally:
+            self.__semaphore.release()
+
+    def get_job_status(self) -> JobStatus:
+        self.__semaphore.acquire()
+        try:
+            return self.__status
+        finally:
+            self.__semaphore.release()
 
     def get_variable(self, name: str) -> object:
-        pass
+        self.__semaphore.acquire()
+        try:
+            return self.__variables[name]
+        finally:
+            self.__semaphore.release()
 
     def set_progress(self, progress: int):
-        pass
+        self.__semaphore.acquire()
+        try:
+            self.__status.job_progress = progress
+        finally:
+            self.__semaphore.release()
 
     def set_status(self, status: Status):
-        pass
+        self.__semaphore.acquire()
+        try:
+            self.__status.status = status
+        finally:
+            self.__semaphore.release()
 
     def set_variable(self, name: str, value: object):
-        pass
+        self.__semaphore.acquire()
+        try:
+            self.__variables[name] = object
+        finally:
+            self.__semaphore.release()
 
     def get_pin_configuration(self, pin_name: str) -> PinConfiguration:
-        pass
+        self.__semaphore.acquire()
+        try:
+            return next(p for p in self.__pins if pin_name == p.pin_name)
+        finally:
+            self.__semaphore.release()
 
     def get_strong_pin_names(self) -> []:
-        pass
+        self.__semaphore.acquire()
+        try:
+            pass
+        finally:
+            self.__semaphore.release()
 
     def get_base_msg_uid(self):
-        pass
+        self.__semaphore.acquire()
+        try:
+            pass
+        finally:
+            self.__semaphore.release()
 
     def get_all_msg_uids(self):
-        pass
+        self.__semaphore.acquire()
+        try:
+            pass
+        finally:
+            self.__semaphore.release()
 
     def clear_messages(self, msg_ids):
         pass

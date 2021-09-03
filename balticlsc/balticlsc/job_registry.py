@@ -1,9 +1,8 @@
 import abc
 import enum
 import threading
-
 from balticlsc.balticlsc.configuration import IConfiguration
-from balticlsc.balticlsc.messages import Status, JobStatus
+from balticlsc.balticlsc.messages import Status, JobStatus, InputTokenMessage
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):
@@ -216,23 +215,26 @@ class JobRegistry(IJobRegistry):
     def get_strong_pin_names(self) -> []:
         self.__semaphore.acquire()
         try:
-            pass
+            return list(p.pin_name for p in self.__pins if "true" == p.is_required)
         finally:
             self.__semaphore.release()
 
     def get_base_msg_uid(self):
         self.__semaphore.acquire()
         try:
-            pass
+            return next(ltm.msg_uid for ltm in self.__tokens.values() if 0 != len(ltm))
         finally:
             self.__semaphore.release()
 
     def get_all_msg_uids(self):
         self.__semaphore.acquire()
         try:
-            pass
+            return list(it.msg_uid for pit in self.__tokens.values() for it in pit)
         finally:
             self.__semaphore.release()
 
     def clear_messages(self, msg_ids):
+        pass
+
+    def register_token(self, msg: InputTokenMessage):
         pass

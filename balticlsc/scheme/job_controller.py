@@ -1,7 +1,9 @@
 import abc
-from typing import Type
+import os
+from typing import Type, Union
 from flask import Flask
 
+from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.messages import Status
@@ -72,5 +74,23 @@ class JobThread:
             self.__handler.fail_processing(str(e))
 
 
+__registry: Union[JobRegistry, None] = None
+__handler: Union[DataHandler, None] = None
+
+
 def init_job_controller(listener: Type[TokenListener]) -> Flask:
-    pass
+    global __registry, __handler
+    configuration = IConfiguration()
+    __registry = JobRegistry(configuration)
+    __handler = DataHandler(__registry, configuration)
+    app = Flask(os.getenv('SYS_MODULE_NAME', 'BalticLSC module'))
+
+    @app.route('/token', methods=['POST'])
+    def process_token():
+        pass
+
+    @app.route('/status', methods=['GET'])
+    def get_status():
+        pass
+
+    return app

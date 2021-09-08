@@ -3,7 +3,7 @@ import enum
 import os
 import threading
 from balticlsc.scheme.configuration import IConfiguration
-from balticlsc.scheme.job_thread import JobThread
+from balticlsc.scheme.job_controller import JobThread
 from balticlsc.scheme.messages import Status, JobStatus, InputTokenMessage
 
 

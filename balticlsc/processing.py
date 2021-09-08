@@ -1,7 +1,6 @@
-from balticlsc.scheme.job_controller import init_job_controller
+from balticlsc.scheme.job_controller import init_job_controller, TokenListener
 from balticlsc.scheme.data_handler import IDataHandler
 from balticlsc.scheme.job_registry import IJobRegistry
-from balticlsc.scheme.job_thread import TokenListener
 
 
 class MyTokenListener(TokenListener):

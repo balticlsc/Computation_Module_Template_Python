@@ -29,7 +29,9 @@ class IJobRegistry(metaclass=abc.ABCMeta):
                 hasattr(subclass, 'set_status') and
                 callable(subclass.set_status) and
                 hasattr(subclass, 'set_variable') and
-                callable(subclass.set_variable) or
+                callable(subclass.set_variable) and
+                hasattr(subclass, 'get_environment_variable') and
+                callable(subclass.get_environment_variable) or
                 NotImplemented)
 
     @abc.abstractmethod
@@ -70,6 +72,10 @@ class IJobRegistry(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def set_variable(self, name: str, value: object):
+        pass
+
+    @abc.abstractmethod
+    def get_environment_variable(self, name: str) -> str:
         pass
 
 
@@ -214,6 +220,9 @@ class JobRegistry(IJobRegistry):
             self.__variables[name] = object
         finally:
             self.__semaphore.release()
+
+    def get_environment_variable(self, name: str) -> str:
+        pass
 
     def get_pin_configuration(self, pin_name: str) -> PinConfiguration:
         self.__semaphore.acquire()

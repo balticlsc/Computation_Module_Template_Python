@@ -1,5 +1,6 @@
 import abc
 import enum
+import os
 import threading
 from balticlsc.balticlsc.configuration import IConfiguration
 from balticlsc.balticlsc.job_thread import JobThread
@@ -222,7 +223,7 @@ class JobRegistry(IJobRegistry):
             self.__semaphore.release()
 
     def get_environment_variable(self, name: str) -> str:
-        pass
+        return os.getenv(name)
 
     def get_pin_configuration(self, pin_name: str) -> PinConfiguration:
         self.__semaphore.acquire()

@@ -1,21 +1,54 @@
-from os import listdir
-from os.path import isfile, join
+import abc
 from balticlsc.balticlsc.data_handler import IDataHandler
 from balticlsc.balticlsc.job_registry import IJobRegistry
 
 
 class TokenListener:
-    __data: IDataHandler
-    __registry: IJobRegistry
+
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        return (hasattr(subclass, 'data_received') and
+                callable(subclass.data_received) and
+                hasattr(subclass, 'optional_data_received') and
+                callable(subclass.optional_data_received) and
+                hasattr(subclass, 'data_ready') and
+                callable(subclass.data_ready) and
+                hasattr(subclass, 'data_complete') and
+                callable(subclass.data_complete) or
+                NotImplemented)
+
+    @abc.abstractmethod
+    def __init__(self, registry: IJobRegistry, data: IDataHandler):
+        _data = data
+        _registry = registry
+
+    @abc.abstractmethod
+    def data_received(self, pin_name: str):
+        pass
+
+    @abc.abstractmethod
+    def optional_data_received(self, pin_name: str):
+        pass
+
+    @abc.abstractmethod
+    def data_ready(self):
+        pass
+
+    @abc.abstractmethod
+    def data_complete(self):
+        pass
 
 
 class MyTokenListener(TokenListener):
 
-    def optional_data_received(self, pin_name: str):
+    def __init__(self, registry: IJobRegistry, data: IDataHandler):
+        super().__init__(registry, data)
+
+    def data_received(self, pin_name: str):
         # Place your code here:
         pass
 
-    def data_received(self, pin_name: str):
+    def optional_data_received(self, pin_name: str):
         # Place your code here:
         pass
 
@@ -25,8 +58,4 @@ class MyTokenListener(TokenListener):
 
     def data_complete(self):
         # Place your code here:
-        folder = self.__data.obtain_data_item("Image Folder")
-        files = list(f for f in listdir(folder) if isfile(join(folder, f)))
-        for i in range(len(files)-1):
-            self.__data.send_data_item("Images", files[i], len(files)-1 == i)
-        self.__data.finish_processing()
+        pass

@@ -4,11 +4,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="balticlsc",
+    name="scheme",
     version="1.0.1",
     author="Jan Bielecki",
     author_email="jan.bielecki.dokt@pw.edu.pl",
-    description="Baltic LSC module scheme",
+    description="Baltic LSC module old_scheme",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/K4liber/balticlsc_module",

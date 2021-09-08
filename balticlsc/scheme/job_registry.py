@@ -2,9 +2,9 @@ import abc
 import enum
 import os
 import threading
-from balticlsc.balticlsc.configuration import IConfiguration
-from balticlsc.balticlsc.job_thread import JobThread
-from balticlsc.balticlsc.messages import Status, JobStatus, InputTokenMessage
+from balticlsc.scheme.configuration import IConfiguration
+from balticlsc.scheme.job_thread import JobThread
+from balticlsc.scheme.messages import Status, JobStatus, InputTokenMessage
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):

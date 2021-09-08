@@ -6,7 +6,7 @@ from typing import Union, Type, Any
 
 from flask import Flask, request, Response
 
-from balticlsc.scheme.processing import ProcessingInterface
+from balticlsc.processing import ProcessingInterface
 from balticlsc.scheme.status import ComputationStatus
 from balticlsc.scheme.token import InputToken
 from balticlsc.scheme.job_rest_client import JobRestClient

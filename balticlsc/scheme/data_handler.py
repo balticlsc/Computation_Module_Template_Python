@@ -2,11 +2,41 @@ import abc
 import json
 from http import HTTPStatus
 from typing import Dict
-from balticlsc.balticlsc.configuration import IConfiguration
-from balticlsc.balticlsc.data_handle import DataHandle, MongoDBHandle
-from balticlsc.balticlsc.job_registry import JobRegistry
-from balticlsc.balticlsc.messages import Status
-from balticlsc.balticlsc.tokens_proxy import TokensProxy
+
+from balticlsc.access.mongo_data_handle import MongoDBHandle
+from balticlsc.scheme.configuration import IConfiguration
+from balticlsc.scheme.job_registry import JobRegistry
+from balticlsc.scheme.messages import Status
+from balticlsc.scheme.tokens_proxy import TokensProxy
+
+
+class DataHandle(metaclass=abc.ABCMeta):
+
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        return (hasattr(subclass, 'download') and
+                callable(subclass.download) and
+                hasattr(subclass, 'upload') and
+                callable(subclass.upload) and
+                hasattr(subclass, 'check_connection') and
+                callable(subclass.check_connection) or
+                NotImplemented)
+
+    @abc.abstractmethod
+    def __init__(self, pin_name: str, configuration: IConfiguration):
+        pass
+
+    @abc.abstractmethod
+    def download(self, handle: {}) -> str:
+        pass
+
+    @abc.abstractmethod
+    def upload(self, local_path: str) -> {}:
+        pass
+
+    @abc.abstractmethod
+    def check_connection(self, handle: {}):
+        pass
 
 
 class IDataHandler(metaclass=abc.ABCMeta):

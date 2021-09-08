@@ -14,7 +14,7 @@ from balticlsc.configs.credential.ftp import FTPCredential
 from balticlsc.scheme.api import init_baltic_api
 from balticlsc.scheme.logger import logger
 from balticlsc.scheme.pin import Pin, MissingPin, PinAttribute, ValuesAttribute
-from balticlsc.scheme.processing import ProcessingInterface
+from balticlsc.processing import ProcessingInterface
 from balticlsc.scheme.utils import camel_to_snake, get_random_output_folder
 
 MODULE_VERSION = 'latest'

@@ -112,7 +112,7 @@ class DataHandler(IDataHandler):
 
     def obtain_data_items_dim(self, pin_name: str) -> ([], []):
         (values, sizes) = self.__registry.get_pin_values_dim(pin_name)
-        values_object = list(map(lambda v: None if v is None or not v else json.load(v), values))
+        values_object = list(map(lambda v: None if v is None or not v else json.loads(v), values))
         d_handle = self.get_data_handle(pin_name)
         data_items = list(map(lambda vo: None if vo is None else d_handle.download(vo), values_object))
         return data_items, sizes

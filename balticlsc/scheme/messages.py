@@ -2,17 +2,20 @@ import enum
 
 
 class SeqToken:
-    seq_uid: str
-    no: int
-    is_final: bool
+    def __init__(self, seq_uid: str, no: int, is_final: bool):
+        self.seq_uid = seq_uid
+        self.no = no
+        self.is_final = is_final
 
 
 class InputTokenMessage:
-    msg_uid: str
-    pin_name: str
-    access_type: str
-    values: str
-    token_seq_stack: []
+
+    def __init__(self, msg_uid: str, pin_name: str, values: str, access_type: str, token_seq_stack: []):
+        self.msg_uid = msg_uid
+        self.pin_name = pin_name
+        self.values = values
+        self.access_type = access_type
+        self.token_seq_stack = token_seq_stack
 
 
 class Status(enum.Enum):
@@ -23,22 +26,27 @@ class Status(enum.Enum):
 
 
 class JobStatus:
-    job_instance_uid: str
-    job_progress: int
-    status: Status
+    def __init__(self, job_instance_uid: str, status: Status, job_progress: int):
+        self.job_instance_uid = job_instance_uid
+        self.job_progress = job_progress
+        self.status = status
 
 
 class OutputTokenMessage:
-    pin_name: str
-    values: str
-    sender_uid: str
-    required_msg_uid: str
-    is_final: bool
+
+    def __init__(self, pin_name: str, sender_uid: str, values: str, base_msg_uid: str, is_final: bool):
+        self.pin_name = pin_name
+        self.sender_uid = sender_uid
+        self.values = values
+        self.base_msg_uid = base_msg_uid
+        self.is_final = is_final
 
 
 class TokensAck:
-    msg_uids: []
-    sender_uid: str
-    is_final: bool
-    is_failed: bool
-    note: str
+
+    def __init__(self, sender_uid: str, msg_uids: [], note: str, is_final: bool, is_failed: bool):
+        self.sender_uid = sender_uid
+        self.msg_uids = msg_uids
+        self.note = note
+        self.is_final = is_final
+        self.is_failed = is_failed

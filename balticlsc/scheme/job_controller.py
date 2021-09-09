@@ -1,12 +1,15 @@
 import abc
+import json
 import os
+import sys
 from typing import Type, Union
-from flask import Flask
+from flask import Flask, request, Response
 
 from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
-from balticlsc.scheme.messages import Status
+from balticlsc.scheme.logger import logger
+from balticlsc.scheme.messages import Status, InputTokenMessage
 
 
 class TokenListener:
@@ -87,7 +90,21 @@ def init_job_controller(listener: Type[TokenListener]) -> Flask:
 
     @app.route('/token', methods=['POST'])
     def process_token():
-        pass
+        try:
+            logger.debug("Token message received: " + str(request.json))
+            input_token = InputTokenMessage()
+            __registry.register_token(input_token)
+            try:
+                result = __handler.check_connection(input_token.pin_name, json.loads(input_token.values))
+                pass
+                return Response(status=400, mimetype='application/json')
+            except Exception as e:
+                logger.debug("Corrupted token: : " + str(e))
+                return Response("Error of type " + type(e).__name__ + ":" + str(e), status=200,
+                                mimetype='application/json')
+        except Exception as e:
+            logger.debug("Corrupted token: : " + str(e))
+            return Response(str(e), status=400, mimetype='application/json')
 
     @app.route('/status', methods=['GET'])
     def get_status():

@@ -1,8 +1,8 @@
 import abc
 import json
+import os
 from http import HTTPStatus
 from typing import Dict
-
 from balticlsc.access.mongo_data_handle import MongoDBHandle
 from balticlsc.scheme.job_registry import JobRegistry
 from balticlsc.scheme.messages import Status
@@ -23,7 +23,8 @@ class DataHandle(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __init__(self, pin_name: str, pins_configuration: []):
-        pass
+        self._pin_configuration = next(pc for pc in pins_configuration if pc.pin_name == pin_name)
+        self._local_path = os.getenv('LOCAL_TMP_PATH', '/balticLSC_tmp')
 
     @abc.abstractmethod
     def download(self, handle: {}) -> str:

@@ -4,7 +4,7 @@ import os
 import threading
 from balticlsc.scheme.job_controller import JobThread
 from balticlsc.scheme.messages import Status, JobStatus, InputTokenMessage
-from balticlsc.scheme.pin_configuration import Multiplicity, PinConfiguration
+from balticlsc.scheme.pins_configuration import Multiplicity, PinConfiguration
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):

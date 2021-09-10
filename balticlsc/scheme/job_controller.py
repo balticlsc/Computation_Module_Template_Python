@@ -8,6 +8,7 @@ from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.logger import logger
 from balticlsc.scheme.messages import Status, InputTokenMessage, SeqToken
+from balticlsc.scheme.pins_configuration import PinConfiguration
 from balticlsc.scheme.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
 
 
@@ -89,7 +90,9 @@ def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
         try:
             pins_configuration = []
             for p in json.load(pins_config_file).items():
-                pass
+                pins_configuration.append(
+                    PinConfiguration(**{key: value for key, value in camel_dict_to_snake_dict(p) if key in
+                                        PinConfiguration.__dict__['__annotations__']}))
         except BaseException as lpe:
             error_msg = 'Error while loading pins config from ' + pins_config_path + ': ' + str(lpe)
             raise ValueError(error_msg) from lpe

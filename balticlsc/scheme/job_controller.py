@@ -2,6 +2,7 @@ import abc
 import json
 import os
 import re
+import threading
 from typing import Type, Union
 from flask import Flask, request, Response
 
@@ -79,6 +80,7 @@ class JobThread:
 
 __registry: Union[JobRegistry, None] = None
 __handler: Union[DataHandler, None] = None
+__listener_type: Union[Type[TokenListener], None] = None
 
 
 def camel_dict_to_snake_dict(source: {}) -> {}:
@@ -88,11 +90,12 @@ def camel_dict_to_snake_dict(source: {}) -> {}:
     ) if isinstance(value, type([])) else value for key, value in source.items()}
 
 
-def init_job_controller(listener: Type[TokenListener]) -> Flask:
-    global __registry, __handler
+def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
+    global __registry, __handler, __listener_type
     configuration = IConfiguration()
     __registry = JobRegistry(configuration)
     __handler = DataHandler(__registry, configuration)
+    __listener_type = listener_type
     app = Flask(os.getenv('SYS_MODULE_NAME', 'BalticLSC module'))
 
     @app.route('/token', methods=['POST'])
@@ -109,7 +112,12 @@ def init_job_controller(listener: Type[TokenListener]) -> Flask:
                 result = __handler.check_connection(input_token.pin_name, json.loads(input_token.values))
                 match result:
                     case 0:
-
+                        job_thread = JobThread(input_token.pin_name, __listener_type(__registry, __handler),
+                                               __registry, __handler)
+                        __registry.register_thread(job_thread)
+                        pin_task = threading.Thread(target=job_thread.run)
+                        pin_task.daemon = True
+                        pin_task.start()
                         return Response(status=200, mimetype='application/json')
                     case - 1:
                         ret__message = 'No response (' + input_token.pin_name + ').'

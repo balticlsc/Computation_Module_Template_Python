@@ -4,7 +4,6 @@ from http import HTTPStatus
 from typing import Dict
 
 from balticlsc.access.mongo_data_handle import MongoDBHandle
-from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.job_registry import JobRegistry
 from balticlsc.scheme.messages import Status
 from balticlsc.scheme.tokens_proxy import TokensProxy
@@ -23,7 +22,7 @@ class DataHandle(metaclass=abc.ABCMeta):
                 NotImplemented)
 
     @abc.abstractmethod
-    def __init__(self, pin_name: str, configuration: IConfiguration):
+    def __init__(self, pin_name: str, pins_configuration: []):
         pass
 
     @abc.abstractmethod
@@ -90,9 +89,9 @@ class IDataHandler(metaclass=abc.ABCMeta):
 
 class DataHandler(IDataHandler):
 
-    def __init__(self, registry: JobRegistry, configuration: IConfiguration):
+    def __init__(self, registry: JobRegistry, pins_configuration: []):
         self.__registry = registry
-        self.__configuration = configuration
+        self.__pins_configuration = pins_configuration
         self.__tokens_proxy = TokensProxy()
         self.__data_handles = {}
 
@@ -161,7 +160,7 @@ class DataHandler(IDataHandler):
             case 'Direct':
                 raise ValueError('Cannot create a data handle for a pin of type \"Direct\"')
             case '':
-                handle = MongoDBHandle(pin_name, self.__configuration)
+                handle = MongoDBHandle(pin_name, self.__pins_configuration)
             case _:
                 raise NotImplementedError('AccessType (' + access_type + ') not supported by the DataHandler, has to '
                                                                          'be handled manually')

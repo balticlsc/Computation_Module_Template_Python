@@ -1,11 +1,10 @@
-from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.data_handler import DataHandle
 
 
 class MongoDBHandle(DataHandle):
 
-    def __init__(self, pin_name: str, configuration: IConfiguration):
-        super().__init__(pin_name, configuration)
+    def __init__(self, pin_name: str, pins_configuration: []):
+        super().__init__(pin_name, pins_configuration)
 
     def download(self, handle: {}) -> str:
         pass

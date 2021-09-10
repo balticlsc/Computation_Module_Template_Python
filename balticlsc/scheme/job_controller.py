@@ -5,7 +5,6 @@ import re
 import threading
 from typing import Type, Union
 from flask import Flask, request, Response
-from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.logger import logger
@@ -91,9 +90,9 @@ def camel_dict_to_snake_dict(source: {}) -> {}:
 
 def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
     global __registry, __handler, __listener_type
-    configuration = IConfiguration()
-    __registry = JobRegistry(configuration)
-    __handler = DataHandler(__registry, configuration)
+    pins_configuration = []
+    __registry = JobRegistry(pins_configuration)
+    __handler = DataHandler(__registry, pins_configuration)
     __listener_type = listener_type
     app = Flask(os.getenv('SYS_MODULE_NAME', 'BalticLSC module'))
 

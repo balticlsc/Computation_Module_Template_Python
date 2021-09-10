@@ -2,9 +2,9 @@ import abc
 import enum
 import os
 import threading
-from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.job_controller import JobThread
 from balticlsc.scheme.messages import Status, JobStatus, InputTokenMessage
+from balticlsc.scheme.pin_configuration import Multiplicity, PinConfiguration
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):
@@ -80,24 +80,9 @@ class IJobRegistry(metaclass=abc.ABCMeta):
         pass
 
 
-class Multiplicity(enum.Enum):
-    SINGLE = 0
-    MULTIPLE = 1
-
-
-class PinConfiguration:
-    pin_name: str
-    pin_type: str
-    is_required: str
-    token_multiplicity: Multiplicity
-    data_multiplicity: Multiplicity
-    access_type: str
-    access_credential: str
-
-
 class JobRegistry(IJobRegistry):
 
-    def __init__(self, configuration: IConfiguration):
+    def __init__(self, pins_configuration: []):
         self.__pins = []
         self.__tokens = {}
         self.__status = JobStatus()

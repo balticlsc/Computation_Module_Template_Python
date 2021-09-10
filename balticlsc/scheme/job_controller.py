@@ -109,6 +109,22 @@ def init_job_controller(listener: Type[TokenListener]) -> Flask:
                 result = __handler.check_connection(input_token.pin_name, json.loads(input_token.values))
                 match result:
                     case 0:
+
+                        return Response(status=200, mimetype='application/json')
+                    case - 1:
+                        ret__message = 'No response (' + input_token.pin_name + ').'
+                        logger.debug(ret__message)
+                        return Response(ret__message, status=404, mimetype='application/json')
+                        pass
+                    case - 2:
+                        ret__message = 'Unauthorized (' + input_token.pin_name + ').'
+                        logger.debug(ret__message)
+                        return Response(ret__message, status=401, mimetype='application/json')
+                        pass
+                    case - 3:
+                        ret__message = 'Invalid path (' + input_token.pin_name + ').'
+                        logger.debug(ret__message)
+                        return Response(ret__message, status=401, mimetype='application/json')
                         pass
                 return Response(status=400, mimetype='application/json')
             except Exception as e:
@@ -121,6 +137,8 @@ def init_job_controller(listener: Type[TokenListener]) -> Flask:
 
     @app.route('/status', methods=['GET'])
     def get_status():
-        pass
+        camel_dict = {''.join(word.title() for word in key.split('_')): value if 'status' != key else value.name.title()
+                      for key, value in __registry.get_job_status().__dict__.items()}
+        return Response(json.dumps(camel_dict), status=200, mimetype='application/json')
 
     return app

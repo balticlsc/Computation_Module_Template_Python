@@ -4,9 +4,9 @@ import requests
 import json
 
 from balticlsc.scheme.logger import logger
-from balticlsc.scheme.status import JobStatus, ComputationStatus
-from balticlsc.scheme.token import AckToken, OutputToken, Token
-from balticlsc.scheme.utils import snake_to_camel
+from balticlsc.old_scheme.status import JobStatus, ComputationStatus
+from balticlsc.old_scheme.token import AckToken, OutputToken, Token
+from balticlsc.old_scheme.utils import snake_to_camel
 
 
 class JobRestClient:

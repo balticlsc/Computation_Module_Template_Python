@@ -1,4 +1,4 @@
-import enum
+from enum import Enum
 
 
 class SeqToken:
@@ -27,7 +27,7 @@ class InputTokenMessage:
         self.token_seq_stack = token_seq_stack
 
 
-class Status(enum.Enum):
+class Status(Enum):
     IDLE = 0
     WORKING = 1
     COMPLETED = 2
@@ -39,7 +39,7 @@ class JobStatus:
     status: Status
     job_progress: int
 
-    def __init__(self, job_instance_uid: str, status: Status, job_progress: int):
+    def __init__(self, job_instance_uid: str, status: Status = Status.IDLE, job_progress: int = -1):
         self.job_instance_uid = job_instance_uid
         self.job_progress = job_progress
         self.status = status

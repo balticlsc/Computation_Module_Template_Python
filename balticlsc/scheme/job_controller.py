@@ -72,7 +72,7 @@ class JobThread:
                 self.__listener.data_ready()
             if Status.COMPLETED == pin_aggregated_status:
                 self.__listener.data_complete()
-        except Exception as e:
+        except BaseException as e:
             self.__handler.fail_processing(str(e))
 
 
@@ -89,11 +89,19 @@ def camel_dict_to_snake_dict(source: {}) -> {}:
 
 
 def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
-    global __registry, __handler, __listener_type
-    pins_configuration = []
+    global __listener_type, __registry, __handler
+    __listener_type = listener_type
+    pins_config_path = os.getenv('SYS_PIN_CONFIG_FILE_PATH', '/app/module/configs/pins.json')
+    with open(pins_config_path) as pins_config_file:
+        try:
+            pins_configuration = []
+            for p in json.load(pins_config_file).items():
+                pass
+        except BaseException as lpe:
+            error_msg = 'Error while loading pins config from ' + pins_config_path + ': ' + str(lpe)
+            raise ValueError(error_msg) from lpe
     __registry = JobRegistry(pins_configuration)
     __handler = DataHandler(__registry, pins_configuration)
-    __listener_type = listener_type
     app = Flask(os.getenv('SYS_MODULE_NAME', 'BalticLSC module'))
 
     @app.route('/token', methods=['POST'])
@@ -133,11 +141,11 @@ def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
                         return Response(ret__message, status=401, mimetype='application/json')
                         pass
                 return Response(status=400, mimetype='application/json')
-            except Exception as e:
+            except BaseException as e:
                 logger.debug('Corrupted token: : ' + str(e))
                 return Response('Error of type ' + type(e).__name__ + ':' + str(e), status=200,
                                 mimetype='application/json')
-        except Exception as e:
+        except BaseException as e:
             logger.debug('Corrupted token: : ' + str(e))
             return Response(str(e), status=400, mimetype='application/json')
 

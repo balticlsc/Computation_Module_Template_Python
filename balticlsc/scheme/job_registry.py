@@ -83,9 +83,9 @@ class IJobRegistry(metaclass=abc.ABCMeta):
 class JobRegistry(IJobRegistry):
 
     def __init__(self, pins_configuration: []):
-        self.__pins = []
+        self.__pins = pins_configuration
         self.__tokens = {}
-        self.__status = JobStatus()
+        self.__status = JobStatus(os.getenv('SYS_MODULE_INSTANCE_UID', 'module_uid'))
         self.__variables = {}
         self.__job_threads = []
         self.__semaphore = threading.Semaphore()

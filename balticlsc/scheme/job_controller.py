@@ -1,7 +1,7 @@
 import abc
 import json
 import os
-import sys
+import re
 from typing import Type, Union
 from flask import Flask, request, Response
 
@@ -9,7 +9,7 @@ from balticlsc.scheme.configuration import IConfiguration
 from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.logger import logger
-from balticlsc.scheme.messages import Status, InputTokenMessage
+from balticlsc.scheme.messages import Status, InputTokenMessage, SeqToken
 
 
 class TokenListener:
@@ -59,7 +59,7 @@ class JobThread:
     def run(self):
         try:
             self.__listener.data_received(self.__pin_name)
-            if "true" == self.__registry.get_pin_configuration(self.__pin_name).is_required:
+            if 'true' == self.__registry.get_pin_configuration(self.__pin_name).is_required:
                 self.__listener.optional_data_received(self.__pin_name)
             pin_aggregated_status = Status.COMPLETED
             for pin_name in self.__registry.get_strong_pin_names():
@@ -81,6 +81,13 @@ __registry: Union[JobRegistry, None] = None
 __handler: Union[DataHandler, None] = None
 
 
+def camel_dict_to_snake_dict(source: {}) -> {}:
+    pattern = re.compile(r'(?<!^)(?=[A-Z])')
+    return {pattern.sub('_', key).lower(): list(
+        camel_dict_to_snake_dict(in_value) for in_value in value
+    ) if isinstance(value, type([])) else value for key, value in source.items()}
+
+
 def init_job_controller(listener: Type[TokenListener]) -> Flask:
     global __registry, __handler
     configuration = IConfiguration()
@@ -91,19 +98,25 @@ def init_job_controller(listener: Type[TokenListener]) -> Flask:
     @app.route('/token', methods=['POST'])
     def process_token():
         try:
-            logger.debug("Token message received: " + str(request.json))
-            input_token = InputTokenMessage()
+            logger.debug('Token message received: ' + str(request.json))
+            input_token = InputTokenMessage(
+                **{key: value if 'token_seq_stack' != key else list(
+                    SeqToken(**in_value) for in_value in value)
+                   for key, value in camel_dict_to_snake_dict(request.json).items() if key in
+                   InputTokenMessage.__dict__['__annotations__']})
             __registry.register_token(input_token)
             try:
                 result = __handler.check_connection(input_token.pin_name, json.loads(input_token.values))
-                pass
+                match result:
+                    case 0:
+                        pass
                 return Response(status=400, mimetype='application/json')
             except Exception as e:
-                logger.debug("Corrupted token: : " + str(e))
-                return Response("Error of type " + type(e).__name__ + ":" + str(e), status=200,
+                logger.debug('Corrupted token: : ' + str(e))
+                return Response('Error of type ' + type(e).__name__ + ':' + str(e), status=200,
                                 mimetype='application/json')
         except Exception as e:
-            logger.debug("Corrupted token: : " + str(e))
+            logger.debug('Corrupted token: : ' + str(e))
             return Response(str(e), status=400, mimetype='application/json')
 
     @app.route('/status', methods=['GET'])

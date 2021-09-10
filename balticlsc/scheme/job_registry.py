@@ -145,13 +145,13 @@ class JobRegistry(IJobRegistry):
             return None
         if sizes is None and 1 == len(values):
             return values[0]
-        raise Exception("Improper call - more than one token exists for the pin")
+        raise Exception('Improper call - more than one token exists for the pin')
 
     def get_pin_values(self, pin_name: str) -> []:
         (values, sizes) = self.get_pin_values_dim(pin_name)
         if sizes is not None and 1 == len(sizes):
             return values
-        raise Exception("Improper call - more than one dimension exists for the pin")
+        raise Exception('Improper call - more than one dimension exists for the pin')
 
     def get_pin_values_dim(self, pin_name: str) -> ([], []):
         self.__semaphore.acquire()
@@ -235,7 +235,7 @@ class JobRegistry(IJobRegistry):
     def get_strong_pin_names(self) -> []:
         self.__semaphore.acquire()
         try:
-            return list(p.pin_name for p in self.__pins if "true" == p.is_required)
+            return list(p.pin_name for p in self.__pins if 'true' == p.is_required)
         finally:
             self.__semaphore.release()
 

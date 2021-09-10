@@ -2,6 +2,10 @@ import enum
 
 
 class SeqToken:
+    seq_uid: str
+    no: int
+    is_final: bool
+
     def __init__(self, seq_uid: str, no: int, is_final: bool):
         self.seq_uid = seq_uid
         self.no = no
@@ -9,6 +13,11 @@ class SeqToken:
 
 
 class InputTokenMessage:
+    msg_uid: str
+    pin_name: str
+    values: str
+    access_type: str
+    token_seq_stack: []
 
     def __init__(self, msg_uid: str, pin_name: str, values: str, access_type: str, token_seq_stack: []):
         self.msg_uid = msg_uid
@@ -26,6 +35,10 @@ class Status(enum.Enum):
 
 
 class JobStatus:
+    job_instance_uid: str
+    status: Status
+    job_progress: int
+
     def __init__(self, job_instance_uid: str, status: Status, job_progress: int):
         self.job_instance_uid = job_instance_uid
         self.job_progress = job_progress
@@ -33,6 +46,11 @@ class JobStatus:
 
 
 class OutputTokenMessage:
+    pin_name: str
+    sender_uid: str
+    values: str
+    base_msg_uid: str
+    is_final: bool
 
     def __init__(self, pin_name: str, sender_uid: str, values: str, base_msg_uid: str, is_final: bool):
         self.pin_name = pin_name
@@ -43,6 +61,11 @@ class OutputTokenMessage:
 
 
 class TokensAck:
+    sender_uid: str
+    msg_uids: []
+    note: str
+    is_final: bool
+    is_failed: bool
 
     def __init__(self, sender_uid: str, msg_uids: [], note: str, is_final: bool, is_failed: bool):
         self.sender_uid = sender_uid

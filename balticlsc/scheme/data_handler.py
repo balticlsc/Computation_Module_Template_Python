@@ -102,13 +102,13 @@ class DataHandler(IDataHandler):
             return None
         if sizes is None and 1 == len(values):
             return values[0]
-        raise Exception("Improper call - more than one data item exists for the pin")
+        raise Exception('Improper call - more than one data item exists for the pin')
 
     def obtain_data_items(self, pin_name: str) -> []:
         (values, sizes) = self.obtain_data_items_dim(pin_name)
         if sizes is not None and 1 == len(sizes):
             return values
-        raise Exception("Improper call - more than one dimension exists for the pin")
+        raise Exception('Improper call - more than one dimension exists for the pin')
 
     def obtain_data_items_dim(self, pin_name: str) -> ([], []):
         (values, sizes) = self.__registry.get_pin_values_dim(pin_name)
@@ -151,19 +151,19 @@ class DataHandler(IDataHandler):
             d_handle = self.get_data_handle(pin_name)
             return d_handle.check_connection(handle)
         except ValueError:
-            raise ValueError("Cannot check connection for a pin of type \"Direct\"")
+            raise ValueError('Cannot check connection for a pin of type \"Direct\"')
 
     def get_data_handle(self, pin_name: str) -> DataHandle:
         if pin_name in self.__data_handles:
             return self.__data_handles[pin_name]
         access_type = self.__registry.get_pin_configuration(pin_name).access_type
         match access_type:
-            case "Direct":
-                raise ValueError("Cannot create a data handle for a pin of type \"Direct\"")
-            case "":
+            case 'Direct':
+                raise ValueError('Cannot create a data handle for a pin of type \"Direct\"')
+            case '':
                 handle = MongoDBHandle(pin_name, self.__configuration)
             case _:
-                raise NotImplementedError("AccessType (" + access_type + ") not supported by the DataHandler, has to "
-                                                                         "be handled manually")
+                raise NotImplementedError('AccessType (' + access_type + ') not supported by the DataHandler, has to '
+                                                                         'be handled manually')
         self.__data_handles[pin_name] = handle
         return handle

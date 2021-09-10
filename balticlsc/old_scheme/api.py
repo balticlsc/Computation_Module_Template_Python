@@ -6,13 +6,13 @@ from typing import Union, Type, Any
 
 from flask import Flask, request, Response
 
-from balticlsc.processing import ProcessingInterface
-from balticlsc.scheme.status import ComputationStatus
-from balticlsc.scheme.token import InputToken
-from balticlsc.scheme.job_rest_client import JobRestClient
-from balticlsc.scheme.pin import _load_pins, PinType, PinAttribute, ValuesAttribute, Pin
+from balticlsc.old_scheme.processing import ProcessingInterface
+from balticlsc.old_scheme.status import ComputationStatus
+from balticlsc.old_scheme.token import InputToken
+from balticlsc.old_scheme.job_rest_client import JobRestClient
+from balticlsc.old_scheme.pin import _load_pins, PinType, PinAttribute, ValuesAttribute, Pin
 from balticlsc.scheme.logger import logger
-from balticlsc.scheme.utils import camel_to_snake
+from balticlsc.old_scheme.utils import camel_to_snake
 
 SYS_APP_IP = os.getenv('SYS_APP_IP', '0.0.0.0')
 SYS_APP_PORT = os.getenv('SYS_APP_PORT', 9100)

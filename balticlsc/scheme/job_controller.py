@@ -9,6 +9,7 @@ from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.logger import logger
 from balticlsc.scheme.messages import Status, InputTokenMessage, SeqToken
+from balticlsc.scheme.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
 
 
 class TokenListener:
@@ -81,13 +82,6 @@ __handler: Union[DataHandler, None] = None
 __listener_type: Union[Type[TokenListener], None] = None
 
 
-def camel_dict_to_snake_dict(source: {}) -> {}:
-    pattern = re.compile(r'(?<!^)(?=[A-Z])')
-    return {pattern.sub('_', key).lower(): list(
-        camel_dict_to_snake_dict(in_value) for in_value in value
-    ) if isinstance(value, type([])) else value for key, value in source.items()}
-
-
 def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
     global __listener_type, __registry, __handler
     __listener_type = listener_type
@@ -151,8 +145,7 @@ def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
 
     @app.route('/status', methods=['GET'])
     def get_status():
-        camel_dict = {''.join(word.title() for word in key.split('_')): value if 'status' != key else value.name.title()
-                      for key, value in __registry.get_job_status().__dict__.items()}
-        return Response(json.dumps(camel_dict), status=200, mimetype='application/json')
+        return Response(json.dumps(snake_dict_to_camel_dict(__registry.get_job_status().__dict__)), status=200,
+                        mimetype='application/json')
 
     return app

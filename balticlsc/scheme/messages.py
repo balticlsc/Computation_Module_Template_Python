@@ -67,9 +67,9 @@ class TokensAck:
     is_final: bool
     is_failed: bool
 
-    def __init__(self, sender_uid: str, msg_uids: [], note: str, is_final: bool, is_failed: bool):
+    def __init__(self, sender_uid: str, msg_ids: [], note: str, is_final: bool, is_failed: bool):
         self.sender_uid = sender_uid
-        self.msg_uids = msg_uids
+        self.msg_uids = msg_ids
         self.note = note
         self.is_final = is_final
         self.is_failed = is_failed

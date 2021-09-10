@@ -1,5 +1,8 @@
 import re
+<<<<<<< HEAD
 from enum import Enum
+=======
+>>>>>>> origin/friendly-template
 
 
 def camel_dict_to_snake_dict(source: {}) -> {}:

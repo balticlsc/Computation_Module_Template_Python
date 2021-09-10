@@ -1,5 +1,4 @@
 import abc
-import enum
 import os
 import threading
 from balticlsc.scheme.job_controller import JobThread

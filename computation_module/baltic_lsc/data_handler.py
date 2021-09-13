@@ -2,6 +2,8 @@ import abc
 import json
 import os
 from http import HTTPStatus
+from os.path import isdir, isfile
+from shutil import rmtree
 from typing import Dict
 from computation_module.data_access.mongo_data_handle import MongoDBHandle
 from computation_module.baltic_lsc.job_registry import JobRegistry
@@ -37,6 +39,12 @@ class DataHandle(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def check_connection(self, handle: {}):
         pass
+
+    def _clear_local(self):
+        if isdir(self._local_path):
+            rmtree(self._local_path)
+        elif isfile(self._local_path):
+            os.remove(self._local_path)
 
 
 class IDataHandler(metaclass=abc.ABCMeta):

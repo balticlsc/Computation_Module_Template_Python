@@ -16,10 +16,10 @@ class PinConfiguration:
     token_multiplicity: Multiplicity
     data_multiplicity: Multiplicity
     access_type: str
-    access_credential: str
+    access_credential: {}
 
     def __init__(self, pin_name: str, pin_type: str, is_required: str, token_multiplicity: Multiplicity,
-                 data_multiplicity: Multiplicity, access_type: str, access_credential: str):
+                 data_multiplicity: Multiplicity, access_type: str, access_credential: {}):
         self.pin_name = pin_name
         self.pin_type = pin_type
         self.is_required = is_required

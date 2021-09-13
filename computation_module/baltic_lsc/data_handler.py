@@ -1,10 +1,12 @@
 import abc
 import json
 import os
+import uuid
 from http import HTTPStatus
-from os.path import isdir, isfile
+from os import listdir
+from os.path import isdir, isfile, join, basename
 from shutil import rmtree
-from typing import Dict
+from typing import Dict, final
 from computation_module.data_access.mongo_data_handle import MongoDBHandle
 from computation_module.baltic_lsc.job_registry import JobRegistry
 from computation_module.data_model.messages import Status
@@ -12,6 +14,8 @@ from computation_module.api_access.tokens_proxy import TokensProxy
 
 
 class DataHandle(metaclass=abc.ABCMeta):
+    __baltic_data_prefix: final = 'BalticLSC-'
+    __uuid_length: final = 6
 
     @classmethod
     def __subclasshook__(cls, subclass):
@@ -45,6 +49,15 @@ class DataHandle(metaclass=abc.ABCMeta):
             rmtree(self._local_path)
         elif isfile(self._local_path):
             os.remove(self._local_path)
+
+    def _add_guids_to_file_names(self, local_path: str):
+        for f in (f for f in listdir(local_path) if isfile(join(local_path, f))):
+            file_name = basename(f)
+            new_file_name =\
+                self.__baltic_data_prefix + str(uuid.uuid4())[:self.__uuid_length] + '-'\
+                + file_name if not file_name.startswith(self.__baltic_data_prefix) else file_name[len(
+                    self.__baltic_data_prefix)+self.__uuid_length:]
+            os.rename(f, join(new_file_name, local_path))
 
 
 class IDataHandler(metaclass=abc.ABCMeta):

@@ -13,6 +13,14 @@ from computation_module.data_model.pins_configuration import Multiplicity
 from computation_module.utils.logger import logger
 
 
+def _download_single_file(document: Any, local_path: str) -> str:
+    file_content = document['fileContent']
+    file_path = os.path.join(local_path, document['fileName'])
+    with open(file_path, mode='wb') as file:
+        file.write(file_content)
+    return file_path
+
+
 class MongoDBHandle(DataHandle):
 
     def __init__(self, pin_name: str, pins_configuration: []):
@@ -44,11 +52,11 @@ class MongoDBHandle(DataHandle):
                     logger.debug('Downloading object with id: ' + obj_id)
                     document = self.__mongo_collection.find_one({'_id': ObjectId(obj_id)})
                     if document is not None:
-                        local_path = self.__download_single_file(document, self._local_path)
+                        local_path = _download_single_file(document, self._local_path)
                         logger.debug('Downloading object with id: ' + obj_id + ' successful.')
                     else:
                         logger.debug('Can not find object with id ' + obj_id)
-                except PyMongoError as e:
+                except BaseException as e:
                     logger.debug('Downloading object with id: ' + obj_id + ' failed.')
                     self._clear_local()
                     raise e
@@ -59,10 +67,10 @@ class MongoDBHandle(DataHandle):
                     os.mkdir(local_path)
                     documents = self.__mongo_collection.find()
                     for doc in documents:
-                        self.__download_single_file(doc, local_path)
-                    self.__add_guids_to_file_names(local_path)
+                        _download_single_file(doc, local_path)
+                    self._add_guids_to_file_names(local_path)
                     logger.debug('Downloading all files from ' + collection_name + ' successful.')
-                except PyMongoError as e:
+                except BaseException as e:
                     logger.debug('Downloading all files from ' + collection_name + ' failed.')
                     self._clear_local()
                     raise e
@@ -95,16 +103,16 @@ class MongoDBHandle(DataHandle):
                                  ' successful.')
                 case Multiplicity.MULTIPLE:
                     logger.debug('Uploading directory from ' + local_path + 'to collection ' + collection_name)
-                    files = list(f for f in listdir(local_path) if isfile(join(local_path, f)))
                     handle_list = []
-                    for f in files:
+                    for f in (f for f in listdir(local_path) if isfile(join(local_path, f))):
                         file_name = basename(f)
                         with open(f, mode='rb') as file:
                             file_content = file.read()
                         result = self.__mongo_collection.insert_one({'fileName': file_name,
                                                                      'fileContent': file_content})
                         handle_list.append({'FileName': file_name, 'ObjectId': str(result.inserted_id)})
-                    handle = {'Files': json.dumps(handle_list), 'Database': database_name, 'Collection': collection_name}
+                    handle = {'Files': json.dumps(handle_list), 'Database': database_name,
+                              'Collection': collection_name}
                     logger.Debug('Uploading directory from ' + local_path + 'to collection ' + collection_name +
                                  ' successful.')
             return handle
@@ -175,9 +183,3 @@ class MongoDBHandle(DataHandle):
         self.__mongo_database = self.__mongo_client[database_name]
         self.__mongo_collection = self.__mongo_database[collection_name]
         return database_name, collection_name
-
-    def __download_single_file(self, document: Any, _local_path: str) -> str:
-        pass  # TODO
-
-    def __add_guids_to_file_names(self, local_path: str):
-        pass  # TODO

@@ -1,7 +1,9 @@
+import json
 import os
 import socket
 import uuid
-from os.path import isdir, isfile, basename
+from os import listdir
+from os.path import isdir, isfile, basename, join
 from typing import Any
 from bson import ObjectId
 from pymongo import MongoClient
@@ -87,15 +89,24 @@ class MongoDBHandle(DataHandle):
                         file_content = file.read()
                     result = self.__mongo_collection.insert_one({'fileName': file_name,
                                                                  'fileContent': file_content})
-                    handle['FileName'] = file_name
-                    handle['ObjectId'] = str(result.inserted_id)
-                    handle['Database'] = database_name
-                    handle['Collection'] = collection_name
+                    handle = {'FileName': file_name, 'ObjectId': str(result.inserted_id), 'Database': database_name,
+                              'Collection': collection_name}
                     logger.debug('Uploading file from ' + local_path + 'to collection ' + collection_name +
                                  ' successful.')
                 case Multiplicity.MULTIPLE:
                     logger.debug('Uploading directory from ' + local_path + 'to collection ' + collection_name)
-                    pass  # TODO
+                    files = list(f for f in listdir(local_path) if isfile(join(local_path, f)))
+                    handle_list = []
+                    for f in files:
+                        file_name = basename(f)
+                        with open(f, mode='rb') as file:
+                            file_content = file.read()
+                        result = self.__mongo_collection.insert_one({'fileName': file_name,
+                                                                     'fileContent': file_content})
+                        handle_list.append({'FileName': file_name, 'ObjectId': str(result.inserted_id)})
+                    handle = {'Files': json.dumps(handle_list), 'Database': database_name, 'Collection': collection_name}
+                    logger.Debug('Uploading directory from ' + local_path + 'to collection ' + collection_name +
+                                 ' successful.')
             return handle
         except BaseException as e:
             logger.Debug('Error: ' + str(e) + ' \n Uploading from ' + local_path + ' failed.')

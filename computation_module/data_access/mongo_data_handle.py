@@ -1,9 +1,10 @@
 import socket
 import uuid
 from os.path import isdir, isfile
+from typing import Any
+from bson import ObjectId
 from pymongo import MongoClient
-from pymongo.errors import OperationFailure
-
+from pymongo.errors import OperationFailure, PyMongoError
 from computation_module.baltic_lsc.data_handler import DataHandle
 from computation_module.data_model.pins_configuration import Multiplicity
 from computation_module.utils.logger import logger
@@ -29,7 +30,21 @@ class MongoDBHandle(DataHandle):
         if 'Collection' not in handle:
             raise ValueError('Incorrect DataHandle.')
         self.__prepare(handle['Database'], handle['Collection'])
-        pass
+        local_path = ''
+        match self._pin_configuration.data_multiplicity:
+            case Multiplicity.SINGLE:
+                if 'ObjectId' not in handle:
+                    raise ValueError('Incorrect DataHandle.')
+                obj_id = handle['ObjectId']
+                document = self.__mongo_collection.find_one({'_id': ObjectId(obj_id)})
+                if document is not None:
+                    local_path = self.__download_single_file(document, self._local_path)
+                    logger.debug('Downloading object with id: ' + obj_id + ' successful.')
+                else:
+                    logger.debug('Can not find object with id ' + obj_id)
+            case Multiplicity.MULTIPLE:
+                pass
+        return local_path
 
     def upload(self, local_path: str) -> {}:
         if "output" != self._pin_configuration.pin_type:
@@ -46,10 +61,12 @@ class MongoDBHandle(DataHandle):
             database_name, collection_name = self.__prepare()
             match self._pin_configuration.data_multiplicity:
                 case Multiplicity.SINGLE:
+                    logger.debug('Uploading file from ' + self._local_path + 'to collection ' + collection_name)
                     pass
                 case Multiplicity.MULTIPLE:
+                    logger.debug('Uploading directory from ' + self._local_path + 'to collection ' + collection_name)
                     pass
-            pass
+            return handle
         except BaseException as e:
             logger.Debug('Error: ' + str(e) + ' \n Uploading from ' + self._local_path + ' failed.')
             raise e
@@ -69,10 +86,10 @@ class MongoDBHandle(DataHandle):
         try:
             self.__mongo_client = MongoClient(self.__connection_string)
             self.__mongo_client.list_databases()
-        except OperationFailure:
+        except OperationFailure:  # TODO check if authorization error (if needed)
             logger.debug('Unable to authenticate to MongoDB')
             return -2
-        except BaseException as e:
+        except PyMongoError as e:
             logger.debug('Error ' + str(e) + ' while trying to connect to MongoDB')
             return -1
         if 'input' == self._pin_configuration.pin_type and handle is not None:
@@ -86,8 +103,20 @@ class MongoDBHandle(DataHandle):
                 raise ValueError('Incorrect DataHandle.')
             obj_id = handle['ObjectId']
             try:
-                pass
-            except BaseException:
+                self.__mongo_database = self.__mongo_client[database_name]
+                if self.__mongo_database is None:
+                    logger.debug('No database ' + database_name)
+                    return -3
+                self.__mongo_collection = self.__mongo_database[collection_name]
+                if self.__mongo_collection is None:
+                    logger.debug('No collection ' + database_name)
+                    return -3
+                if Multiplicity.SINGLE == self._pin_configuration.data_multiplicity:
+                    document = self.__mongo_collection.find_one({'_id': ObjectId(obj_id)})
+                    if document is None:
+                        logger.debug('No document with id ' + obj_id)
+                        return -3
+            except PyMongoError:
                 logger.debug('Error while trying to ' +
                              ('access collection ' + collection_name if obj_id is None else 'get object ' + obj_id)
                              + ' from database ' + database_name +
@@ -105,3 +134,6 @@ class MongoDBHandle(DataHandle):
         self.__mongo_database = self.__mongo_client[database_name]
         self.__mongo_collection = self.__mongo_database[collection_name]
         return database_name, collection_name
+
+    def __download_single_file(self, document: Any, _local_path: str) -> str:
+        pass

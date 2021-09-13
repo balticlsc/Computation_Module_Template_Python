@@ -1,7 +1,7 @@
 import json
 import os
 import threading
-from typing import Type, Union
+from typing import Type, Optional
 from flask import Flask, request, Response
 from computation_module.baltic_lsc.data_handler import DataHandler
 from computation_module.baltic_lsc.job_registry import JobRegistry
@@ -11,9 +11,9 @@ from computation_module.data_model.messages import InputTokenMessage, SeqToken
 from computation_module.data_model.pins_configuration import get_pins_configuration
 from computation_module.utils.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
 
-__registry: Union[JobRegistry, None] = None
-__handler: Union[DataHandler, None] = None
-__listener_type: Union[Type[TokenListener], None] = None
+__registry: Optional[JobRegistry] = None
+__handler: Optional[DataHandler] = None
+__listener_type: Optional[Type[TokenListener]] = None
 
 
 def init_job_controller(listener_type: Type[TokenListener]) -> Flask:

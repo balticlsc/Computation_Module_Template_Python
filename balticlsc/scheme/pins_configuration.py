@@ -1,3 +1,5 @@
+import json
+import os
 from enum import Enum
 
 
@@ -24,3 +26,25 @@ class PinConfiguration:
         self.data_multiplicity = data_multiplicity
         self.access_type = access_type
         self.access_credential = access_credential
+
+
+def get_pins_configuration() -> []:
+    pins_config_path = os.getenv('SYS_PIN_CONFIG_FILE_PATH', '/app/module/configs/pins.json')
+    with open(pins_config_path) as pins_config_file:
+        try:
+            pins_configuration = []
+            for p in json.load(pins_config_file).items():
+                try:
+                    pin = PinConfiguration(
+                        **{key: Multiplicity[value.upper()] if key in ('token_multiplicity',
+                                                                       'data_multiplicity') else value
+                           for key, value in camel_dict_to_snake_dict(p)
+                           if key in PinConfiguration.__dict__['__annotations__']})
+                except BaseException as lpe:
+                    error_msg = 'Wrong config for pin - json:' + str(p) + ', error: ' + str(lpe)
+                    raise ValueError(error_msg) from lpe
+                pins_configuration.append(pin)
+        except BaseException as lpe:
+            error_msg = 'Error while loading pins config from ' + pins_config_path + ': ' + str(lpe)
+            raise ValueError(error_msg) from lpe
+    return pins_configuration

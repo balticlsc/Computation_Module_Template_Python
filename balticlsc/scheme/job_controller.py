@@ -8,7 +8,7 @@ from balticlsc.scheme.data_handler import IDataHandler, DataHandler
 from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
 from balticlsc.scheme.logger import logger
 from balticlsc.scheme.messages import Status, InputTokenMessage, SeqToken
-from balticlsc.scheme.pins_configuration import PinConfiguration, Multiplicity
+from balticlsc.scheme.pins_configuration import PinConfiguration, Multiplicity, get_pins_configuration
 from balticlsc.scheme.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
 
 
@@ -85,24 +85,7 @@ __listener_type: Union[Type[TokenListener], None] = None
 def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
     global __listener_type, __registry, __handler
     __listener_type = listener_type
-    pins_config_path = os.getenv('SYS_PIN_CONFIG_FILE_PATH', '/app/module/configs/pins.json')
-    with open(pins_config_path) as pins_config_file:
-        try:
-            pins_configuration = []
-            for p in json.load(pins_config_file).items():
-                try:
-                    pin = PinConfiguration(
-                        **{key: Multiplicity[value.upper()] if key in ('token_multiplicity',
-                                                                       'data_multiplicity') else value
-                           for key, value in camel_dict_to_snake_dict(p)
-                           if key in PinConfiguration.__dict__['__annotations__']})
-                except BaseException as lpe:
-                    error_msg = 'Wrong config for pin - json:' + str(p) + ', error: ' + str(lpe)
-                    raise ValueError(error_msg) from lpe
-                pins_configuration.append(pin)
-        except BaseException as lpe:
-            error_msg = 'Error while loading pins config from ' + pins_config_path + ': ' + str(lpe)
-            raise ValueError(error_msg) from lpe
+    pins_configuration = get_pins_configuration()
     __registry = JobRegistry(pins_configuration)
     __handler = DataHandler(__registry, pins_configuration)
     app = Flask(os.getenv('SYS_MODULE_NAME', 'BalticLSC module'))

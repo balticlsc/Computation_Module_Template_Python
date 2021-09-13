@@ -1,9 +1,4 @@
-import uuid
-from os.path import isfile, isdir
-from pymongo import MongoClient
 from computation_module.baltic_lsc.data_handler import DataHandle
-from computation_module.data_model.pins_configuration import Multiplicity
-from computation_module.utils.logger import logger
 
 
 class MongoDBHandle(DataHandle):

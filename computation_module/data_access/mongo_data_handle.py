@@ -1,3 +1,4 @@
+import os
 import socket
 import uuid
 from os.path import isdir, isfile
@@ -52,7 +53,13 @@ class MongoDBHandle(DataHandle):
             case Multiplicity.MULTIPLE:
                 try:
                     logger.debug('Downloading all files from ' + collection_name)
-                    pass  # TODO
+                    local_path = self._local_path + '/' + collection_name
+                    os.mkdir(local_path)
+                    documents = self.__mongo_collection.find()
+                    for doc in documents:
+                        self.__download_single_file(doc, local_path)
+                    self.__add_guids_to_file_names(local_path)
+                    logger.debug('Downloading all files from ' + collection_name + ' successful.')
                 except PyMongoError as e:
                     logger.debug('Downloading all files from ' + collection_name + ' failed.')
                     self._clear_local()
@@ -149,4 +156,7 @@ class MongoDBHandle(DataHandle):
         return database_name, collection_name
 
     def __download_single_file(self, document: Any, _local_path: str) -> str:
+        pass  # TODO
+
+    def __add_guids_to_file_names(self, local_path: str):
         pass  # TODO

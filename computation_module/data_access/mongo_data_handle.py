@@ -1,6 +1,9 @@
+import socket
 import uuid
 from os.path import isdir, isfile
 from pymongo import MongoClient
+from pymongo.errors import OperationFailure
+
 from computation_module.baltic_lsc.data_handler import DataHandle
 from computation_module.data_model.pins_configuration import Multiplicity
 from computation_module.utils.logger import logger
@@ -14,6 +17,9 @@ class MongoDBHandle(DataHandle):
                                    + self._pin_configuration.access_credential['Password'] + '@' \
                                    + self._pin_configuration.access_credential['Host'] + ':' \
                                    + self._pin_configuration.access_credential['Port']
+        self.__mongo_client = None
+        self.__mongo_database = None
+        self.__mongo_collection = None
 
     def download(self, handle: {}) -> str:
         if "input" != self._pin_configuration.pin_type:
@@ -53,7 +59,41 @@ class MongoDBHandle(DataHandle):
     def check_connection(self, handle: {}):
         host = self._pin_configuration.access_credential["Host"]
         port = self._pin_configuration.access_credential["Port"]
-        pass
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            if not sock.connect_ex((host, port)):
+                logger.debug('Unable to reach ' + host + ':' + port)
+                return -1
+        finally:
+            sock.close()
+        try:
+            self.__mongo_client = MongoClient(self.__connection_string)
+            self.__mongo_client.list_databases()
+        except OperationFailure:
+            logger.debug('Unable to authenticate to MongoDB')
+            return -2
+        except BaseException as e:
+            logger.debug('Error ' + str(e) + ' while trying to connect to MongoDB')
+            return -1
+        if 'input' == self._pin_configuration.pin_type and handle is not None:
+            if 'Database' not in handle:
+                raise ValueError('Incorrect DataHandle.')
+            if 'Collection' not in handle:
+                raise ValueError('Incorrect DataHandle.')
+            database_name = handle['Database']
+            collection_name = handle['Collection']
+            if Multiplicity.SINGLE == self._pin_configuration.data_multiplicity and 'ObjectId' not in handle:
+                raise ValueError('Incorrect DataHandle.')
+            obj_id = handle['ObjectId']
+            try:
+                pass
+            except BaseException:
+                logger.debug('Error while trying to ' +
+                             ('access collection ' + collection_name if obj_id is None else 'get object ' + obj_id)
+                             + ' from database ' + database_name +
+                             ('' if obj_id is None else ' from collection ' + collection_name))
+                return -3
+        return 0
 
     def __prepare(self, database_name: str = None, collection_name: str = None) -> (str, str):
         if database_name is None:

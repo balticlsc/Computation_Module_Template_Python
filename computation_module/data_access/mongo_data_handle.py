@@ -29,7 +29,8 @@ class MongoDBHandle(DataHandle):
             raise ValueError('Incorrect DataHandle.')
         if 'Collection' not in handle:
             raise ValueError('Incorrect DataHandle.')
-        self.__prepare(handle['Database'], handle['Collection'])
+        collection_name = handle['Collection']
+        self.__prepare(handle['Database'], collection_name)
         local_path = ''
         match self._pin_configuration.data_multiplicity:
             case Multiplicity.SINGLE:
@@ -37,6 +38,7 @@ class MongoDBHandle(DataHandle):
                     raise ValueError('Incorrect DataHandle.')
                 obj_id = handle['ObjectId']
                 try:
+                    logger.debug('Downloading object with id: ' + obj_id)
                     document = self.__mongo_collection.find_one({'_id': ObjectId(obj_id)})
                     if document is not None:
                         local_path = self.__download_single_file(document, self._local_path)
@@ -48,7 +50,13 @@ class MongoDBHandle(DataHandle):
                     self._clear_local()
                     raise e
             case Multiplicity.MULTIPLE:
-                pass
+                try:
+                    logger.debug('Downloading all files from ' + collection_name)
+                    pass  # TODO
+                except PyMongoError as e:
+                    logger.debug('Downloading all files from ' + collection_name + ' failed.')
+                    self._clear_local()
+                    raise e
         return local_path
 
     def upload(self, local_path: str) -> {}:
@@ -67,10 +75,10 @@ class MongoDBHandle(DataHandle):
             match self._pin_configuration.data_multiplicity:
                 case Multiplicity.SINGLE:
                     logger.debug('Uploading file from ' + self._local_path + 'to collection ' + collection_name)
-                    pass
+                    pass  # TODO
                 case Multiplicity.MULTIPLE:
                     logger.debug('Uploading directory from ' + self._local_path + 'to collection ' + collection_name)
-                    pass
+                    pass  # TODO
             return handle
         except BaseException as e:
             logger.Debug('Error: ' + str(e) + ' \n Uploading from ' + self._local_path + ' failed.')
@@ -141,4 +149,4 @@ class MongoDBHandle(DataHandle):
         return database_name, collection_name
 
     def __download_single_file(self, document: Any, _local_path: str) -> str:
-        pass
+        pass  # TODO

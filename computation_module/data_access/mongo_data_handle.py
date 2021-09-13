@@ -1,7 +1,7 @@
 import os
 import socket
 import uuid
-from os.path import isdir, isfile
+from os.path import isdir, isfile, basename
 from typing import Any
 from bson import ObjectId
 from pymongo import MongoClient
@@ -69,9 +69,9 @@ class MongoDBHandle(DataHandle):
     def upload(self, local_path: str) -> {}:
         if "output" != self._pin_configuration.pin_type:
             raise Exception('Upload cannot be called for input pins')
-        if not isfile(self._local_path) and not isdir(self._local_path):
-            raise ValueError('Invalid path (' + self._local_path + ')')
-        is_directory = isdir(self._local_path)
+        if not isfile(local_path) and not isdir(local_path):
+            raise ValueError('Invalid path (' + local_path + ')')
+        is_directory = isdir(local_path)
         if Multiplicity.MULTIPLE == self._pin_configuration.data_multiplicity and not is_directory:
             raise ValueError('Multiple data pin requires path pointing to a directory, not a file')
         if Multiplicity.SINGLE == self._pin_configuration.data_multiplicity and is_directory:
@@ -81,14 +81,24 @@ class MongoDBHandle(DataHandle):
             database_name, collection_name = self.__prepare()
             match self._pin_configuration.data_multiplicity:
                 case Multiplicity.SINGLE:
-                    logger.debug('Uploading file from ' + self._local_path + 'to collection ' + collection_name)
-                    pass  # TODO
+                    logger.debug('Uploading file from ' + local_path + 'to collection ' + collection_name)
+                    file_name = basename(local_path)
+                    with open(local_path, mode='rb') as file:
+                        file_content = file.read()
+                    result = self.__mongo_collection.insert_one({'fileName': file_name,
+                                                                 'fileContent': file_content})
+                    handle['FileName'] = file_name
+                    handle['ObjectId'] = str(result.inserted_id)
+                    handle['Database'] = database_name
+                    handle['Collection'] = collection_name
+                    logger.debug('Uploading file from ' + local_path + 'to collection ' + collection_name +
+                                 ' successful.')
                 case Multiplicity.MULTIPLE:
-                    logger.debug('Uploading directory from ' + self._local_path + 'to collection ' + collection_name)
+                    logger.debug('Uploading directory from ' + local_path + 'to collection ' + collection_name)
                     pass  # TODO
             return handle
         except BaseException as e:
-            logger.Debug('Error: ' + str(e) + ' \n Uploading from ' + self._local_path + ' failed.')
+            logger.Debug('Error: ' + str(e) + ' \n Uploading from ' + local_path + ' failed.')
             raise e
         finally:
             self._clear_local()

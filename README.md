@@ -9,7 +9,7 @@ python -m pip install balticlsc
 ```
 or clone the repo and use the code directly.
 ### Build your module
-1. Create an implementation of the [ProcessingInterface](balticlsc/old_scheme/processing.py)*.
+1. Create an implementation of the [ProcessingInterface](computation_module/old_scheme/processing.py)*.
 It should handle tokens according to the documentation.
 2. Init in your code the BalticLSC api using yours implementation of processing*:
     ```

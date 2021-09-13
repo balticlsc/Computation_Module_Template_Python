@@ -1,6 +1,7 @@
 import json
 import os
 from enum import Enum
+from computation_module.utils.utils import camel_dict_to_snake_dict
 
 
 class Multiplicity(Enum):

@@ -9,13 +9,13 @@ from PIL import Image
 
 import numpy as np
 
-from balticlsc.access.ftp import upload_file, get_connection
-from balticlsc.configs.credential.ftp import FTPCredential
-from balticlsc.scheme.api import init_baltic_api
-from balticlsc.scheme.logger import logger
-from balticlsc.scheme.pin import Pin, MissingPin, PinAttribute, ValuesAttribute
-from balticlsc.processing import ProcessingInterface
-from balticlsc.scheme.utils import camel_to_snake, get_random_output_folder
+from computation_module.data_access.ftp import upload_file, get_connection
+from computation_module.configs.credential.ftp import FTPCredential
+from computation_module.baltic_lsc.api import init_baltic_api
+from computation_module.utils.logger import logger
+from computation_module.baltic_lsc.pin import Pin, MissingPin, PinAttribute, ValuesAttribute
+from examples.empty_example.my_token_listener import ProcessingInterface
+from computation_module.utils.utils import camel_to_snake, get_random_output_folder
 
 MODULE_VERSION = 'latest'
 
@@ -28,13 +28,13 @@ class Processing(ProcessingInterface):
         input_folder = input_pin.getattr(PinAttribute.ACCESS_PATH)
 
         if input_access_credential is None:
-            raise ValueError(f'missing access credential in the input pin={str(input_pin)}')
+            raise ValueError(f'missing data_access credential in the input pin={str(input_pin)}')
 
         if input_folder is None:
-            raise ValueError(f'missing access path in the input pin={str(input_pin)}')
+            raise ValueError(f'missing data_access path in the input pin={str(input_pin)}')
 
         input_ftp_credential = FTPCredential(**input_access_credential)
-        # START # Establish the output access credential and folder # START #
+        # START # Establish the output data_access credential and folder # START #
         output_pin_name: str = 'Output'
 
         if output_pin_name not in output_pin_name_to_value:
@@ -47,13 +47,13 @@ class Processing(ProcessingInterface):
         output_access_credential = output_pin.getattr(PinAttribute.ACCESS_CREDENTIAL)
 
         if output_access_credential is None:
-            logger.info('output pin access credentials is None, using input access credentials')
+            logger.info('output pin data_access credentials is None, using input data_access credentials')
             output_ftp_credential = input_ftp_credential
         else:
             output_access_credential = {camel_to_snake(key): value for key, value in output_access_credential.items()}
 
             if str(output_access_credential) == str(input_access_credential):
-                logger.info('input and output access credential are the same')
+                logger.info('input and output data_access credential are the same')
                 output_ftp_credential = input_ftp_credential
             else:
                 output_ftp_credential = FTPCredential(**output_access_credential)
@@ -61,14 +61,14 @@ class Processing(ProcessingInterface):
         output_access_path = output_pin.getattr(PinAttribute.ACCESS_PATH)
 
         if output_access_path is None:
-            logger.info('access path is not provided in output config')
+            logger.info('data_access path is not provided in output config')
             logger.info('setting random generated string as output folder name')
             output_folder = get_random_output_folder(input_folder)
         else:
             output_access_path = {camel_to_snake(key): value for key, value in output_access_path.items()}
 
             if 'resource_path' not in output_access_path:
-                logger.info('missing "resource_path" value in output access path')
+                logger.info('missing "resource_path" value in output data_access path')
                 logger.info('setting random generated string as output folder name')
                 output_folder = get_random_output_folder(input_folder)
             else:

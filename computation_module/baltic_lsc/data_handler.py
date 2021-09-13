@@ -3,10 +3,10 @@ import json
 import os
 from http import HTTPStatus
 from typing import Dict
-from balticlsc.access.mongo_data_handle import MongoDBHandle
-from balticlsc.scheme.job_registry import JobRegistry
-from balticlsc.scheme.messages import Status
-from balticlsc.scheme.tokens_proxy import TokensProxy
+from computation_module.data_access.mongo_data_handle import MongoDBHandle
+from computation_module.baltic_lsc.job_registry import JobRegistry
+from computation_module.data_model.messages import Status
+from computation_module.api_access.tokens_proxy import TokensProxy
 
 
 class DataHandle(metaclass=abc.ABCMeta):

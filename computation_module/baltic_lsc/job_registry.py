@@ -1,9 +1,9 @@
 import abc
 import os
 import threading
-from balticlsc.scheme.job_controller import JobThread
-from balticlsc.scheme.messages import Status, JobStatus, InputTokenMessage
-from balticlsc.scheme.pins_configuration import Multiplicity, PinConfiguration
+from computation_module.api_access.job_controller import JobThread
+from computation_module.data_model.messages import Status, JobStatus, InputTokenMessage
+from computation_module.data_model.pins_configuration import Multiplicity, PinConfiguration
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):

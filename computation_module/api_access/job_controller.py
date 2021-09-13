@@ -1,81 +1,15 @@
-import abc
 import json
 import os
 import threading
 from typing import Type, Union
 from flask import Flask, request, Response
-from balticlsc.scheme.data_handler import IDataHandler, DataHandler
-from balticlsc.scheme.job_registry import IJobRegistry, JobRegistry
-from balticlsc.scheme.logger import logger
-from balticlsc.scheme.messages import Status, InputTokenMessage, SeqToken
-from balticlsc.scheme.pins_configuration import PinConfiguration, Multiplicity, get_pins_configuration
-from balticlsc.scheme.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
-
-
-class TokenListener:
-
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'data_received') and
-                callable(subclass.data_received) and
-                hasattr(subclass, 'optional_data_received') and
-                callable(subclass.optional_data_received) and
-                hasattr(subclass, 'data_ready') and
-                callable(subclass.data_ready) and
-                hasattr(subclass, 'data_complete') and
-                callable(subclass.data_complete) or
-                NotImplemented)
-
-    @abc.abstractmethod
-    def __init__(self, registry: IJobRegistry, data: IDataHandler):
-        _data = data
-        _registry = registry
-
-    @abc.abstractmethod
-    def data_received(self, pin_name: str):
-        pass
-
-    @abc.abstractmethod
-    def optional_data_received(self, pin_name: str):
-        pass
-
-    @abc.abstractmethod
-    def data_ready(self):
-        pass
-
-    @abc.abstractmethod
-    def data_complete(self):
-        pass
-
-
-class JobThread:
-
-    def __init__(self, pin_name: str, listener: TokenListener, registry: JobRegistry, handler: DataHandler):
-        self.__pin_name = pin_name
-        self.__listener = listener
-        self.__registry = registry
-        self.__handler = handler
-
-    def run(self):
-        try:
-            self.__listener.data_received(self.__pin_name)
-            if 'true' == self.__registry.get_pin_configuration(self.__pin_name).is_required:
-                self.__listener.optional_data_received(self.__pin_name)
-            pin_aggregated_status = Status.COMPLETED
-            for pin_name in self.__registry.get_strong_pin_names():
-                pin_status = self.__registry.get_pin_status(pin_name)
-                if Status.WORKING == pin_status:
-                    pin_aggregated_status = Status.WORKING
-                elif Status.IDLE == pin_status:
-                    pin_aggregated_status = Status.IDLE
-                    break
-            if Status.IDLE != pin_aggregated_status:
-                self.__listener.data_ready()
-            if Status.COMPLETED == pin_aggregated_status:
-                self.__listener.data_complete()
-        except BaseException as e:
-            self.__handler.fail_processing(str(e))
-
+from computation_module.baltic_lsc.data_handler import DataHandler
+from computation_module.baltic_lsc.job_registry import JobRegistry
+from computation_module.baltic_lsc.job_engine import TokenListener, JobThread
+from computation_module.utils.logger import logger
+from computation_module.data_model.messages import InputTokenMessage, SeqToken
+from computation_module.data_model.pins_configuration import get_pins_configuration
+from computation_module.utils.utils import camel_dict_to_snake_dict, snake_dict_to_camel_dict
 
 __registry: Union[JobRegistry, None] = None
 __handler: Union[DataHandler, None] = None

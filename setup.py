@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="scheme",
+    name="baltic_lsc",
     version="1.0.1",
     author="Jan Bielecki",
     author_email="jan.bielecki.dokt@pw.edu.pl",

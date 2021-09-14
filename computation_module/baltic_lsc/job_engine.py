@@ -20,8 +20,8 @@ class TokenListener:
 
     @abc.abstractmethod
     def __init__(self, registry: IJobRegistry, data: IDataHandler):
-        _data = data
-        _registry = registry
+        self._data = data
+        self._registry = registry
 
     @abc.abstractmethod
     def data_received(self, pin_name: str):

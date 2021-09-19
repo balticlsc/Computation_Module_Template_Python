@@ -1,7 +1,7 @@
 import json
 import os
 from enum import Enum
-from computation_module.utils.utils import camel_dict_to_snake_dict
+from balticlsc.computation_module.utils.utils import camel_dict_to_snake_dict
 
 
 class Multiplicity(Enum):
@@ -34,12 +34,12 @@ def get_pins_configuration() -> []:
     with open(pins_config_path) as pins_config_file:
         try:
             pins_configuration = []
-            for p in json.load(pins_config_file).items():
+            for p in json.load(pins_config_file):
                 try:
                     pin = PinConfiguration(
                         **{key: Multiplicity[value.upper()] if key in ('token_multiplicity',
                                                                        'data_multiplicity') else value
-                           for key, value in camel_dict_to_snake_dict(p)
+                           for key, value in camel_dict_to_snake_dict(p).items()
                            if key in PinConfiguration.__dict__['__annotations__']})
                 except BaseException as lpe:
                     error_msg = 'Wrong config for pin - json:' + str(p) + ', error: ' + str(lpe)

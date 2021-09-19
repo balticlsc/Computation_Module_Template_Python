@@ -2,6 +2,13 @@
 Package `balticlsc` is supposed to help with creating modules for the 
 BalticLSC system in the python environment.
 
+### Upload new version of the package
+```
+python setup.py sdist
+twine upload dist/balticlsc_test-{version}.tar.gz
+```
+
+
 ### Download the package
 You can simply download the package using `PyPI`:
 ```
@@ -9,7 +16,7 @@ python -m pip install balticlsc
 ```
 or clone the repo and use the code directly.
 ### Build your module
-1. Create an implementation of the [ProcessingInterface](computation_module/old_scheme/processing.py)*.
+1. Create an implementation of the [ProcessingInterface](balticlsc/computation_module/old_scheme/processing.py)*.
 It should handle tokens according to the documentation.
 2. Init in your code the BalticLSC api using yours implementation of processing*:
     ```

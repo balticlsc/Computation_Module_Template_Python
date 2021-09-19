@@ -1,63 +1,13 @@
 import abc
 import json
-import os
-import uuid
 from http import HTTPStatus
-from os import listdir
-from os.path import isdir, isfile, join, basename
-from shutil import rmtree
-from typing import Dict, final
-from computation_module.data_access.mongo_data_handle import MongoDBHandle
-from computation_module.baltic_lsc.job_registry import JobRegistry
-from computation_module.data_model.messages import Status
-from computation_module.api_access.tokens_proxy import TokensProxy
+from typing import Dict
 
-
-class DataHandle(metaclass=abc.ABCMeta):
-    __baltic_data_prefix: final = 'BalticLSC-'
-    __uuid_length: final = 6
-
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'download') and
-                callable(subclass.download) and
-                hasattr(subclass, 'upload') and
-                callable(subclass.upload) and
-                hasattr(subclass, 'check_connection') and
-                callable(subclass.check_connection) or
-                NotImplemented)
-
-    @abc.abstractmethod
-    def __init__(self, pin_name: str, pins_configuration: []):
-        self._pin_configuration = next(pc for pc in pins_configuration if pc.pin_name == pin_name)
-        self._local_path = os.getenv('LOCAL_TMP_PATH', '/balticLSC_tmp')
-
-    @abc.abstractmethod
-    def download(self, handle: {}) -> str:
-        pass
-
-    @abc.abstractmethod
-    def upload(self, local_path: str) -> {}:
-        pass
-
-    @abc.abstractmethod
-    def check_connection(self, handle: {}):
-        pass
-
-    def _clear_local(self):
-        if isdir(self._local_path):
-            rmtree(self._local_path)
-        elif isfile(self._local_path):
-            os.remove(self._local_path)
-
-    def _add_guids_to_file_names(self, local_path: str):
-        for f in (f for f in listdir(local_path) if isfile(join(local_path, f))):
-            file_name = basename(f)
-            new_file_name =\
-                self.__baltic_data_prefix + str(uuid.uuid4())[:self.__uuid_length] + '-'\
-                + file_name if not file_name.startswith(self.__baltic_data_prefix) else file_name[len(
-                    self.__baltic_data_prefix)+self.__uuid_length:]
-            os.rename(f, join(new_file_name, local_path))
+from balticlsc.computation_module.baltic_lsc.data_handle import DataHandle
+from balticlsc.computation_module.data_access.mongo_data_handle import MongoDBHandle
+from balticlsc.computation_module.baltic_lsc.job_registry import JobRegistry
+from balticlsc.computation_module.data_model.messages import Status
+from balticlsc.computation_module.api_access.tokens_proxy import TokensProxy
 
 
 class IDataHandler(metaclass=abc.ABCMeta):
@@ -145,8 +95,9 @@ class DataHandler(IDataHandler):
 
     def send_token(self, pin_name: str, values: str, is_final: bool, msg_uid: str = None) -> int:
         if msg_uid is None:
-            self.__registry.get_base_msg_uid()
-        return 0 if HTTPStatus.OK == self.__tokens_proxy.send_output_token(pin_name, values, msg_uid, is_final) else -1
+            msg_uid = self.__registry.get_base_msg_uid()
+
+        return 0 if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_output_token(pin_name, values, msg_uid, is_final) else -1
 
     def finish_processing(self) -> int:
         msg_ids = self.__registry.get_all_msg_uids()
@@ -156,15 +107,16 @@ class DataHandler(IDataHandler):
     def fail_processing(self, note: str):
         msg_ids = self.__registry.get_all_msg_uids()
         self.__registry.set_status(Status.FAILED)
-        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, True, True, note):
+        if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_ack_token(msg_ids, True, True, note):
             self.__registry.clear_messages(msg_ids)
             return 0
         return -1
 
     def send_ack_token(self, msg_ids: [], is_final: bool) -> int:
-        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, is_final):
+        if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_ack_token(msg_ids, is_final):
             self.__registry.clear_messages(msg_ids)
             return 0
+
         return -1
 
     def check_connection(self, pin_name: str, handle: Dict[str, str] = None) -> int:

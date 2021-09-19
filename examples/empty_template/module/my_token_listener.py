@@ -1,6 +1,6 @@
-from computation_module.api_access.job_controller import init_job_controller, TokenListener
-from computation_module.baltic_lsc.data_handler import IDataHandler
-from computation_module.baltic_lsc.job_registry import IJobRegistry
+from balticlsc.computation_module import init_job_controller, TokenListener
+from balticlsc.computation_module.baltic_lsc.data_handler import IDataHandler
+from balticlsc.computation_module import IJobRegistry
 
 
 class MyTokenListener(TokenListener):

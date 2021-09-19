@@ -1,4 +1,4 @@
-FROM python:3.9.1-alpine
+FROM python:3.10.0rc2-alpine3.14
 # Update & Install dependencies
 RUN apk update
 RUN apk add --no-cache --update \
@@ -12,15 +12,19 @@ RUN apk add --no-cache --update \
 RUN apk add cmake
 RUN python -m pip install --upgrade pip
 RUN apk --update add gcc libgcc musl-dev jpeg-dev zlib-dev
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/main' >> /etc/apk/repositories
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories
+RUN apk update
+RUN apk add mongodb
 COPY ./requirements.txt requirements.txt
 RUN python -m pip install -r requirements.txt
-RUN python -m pip install balticlsc==1.0.1
-# Run the module API
+# Install the balticlsc package (it is not in the requirements file to make the testing process faster)
+RUN python -m pip install balticlsc-test==0.1.0
+# Copy the module content and run the API
 WORKDIR app
 COPY __init__.py module/__init__.py
-COPY content module/content
-ENV FLASK_APP='/app/module/content/processing.py'
+COPY module module/content
+ENV FLASK_APP='/app/module/content/my_token_listener.py'
 RUN echo $FLASK_APP
-# Expose the Flask port number 80 to the host
 EXPOSE 80
 ENTRYPOINT ["flask", "run", "--host=0.0.0.0", "--port=80"]

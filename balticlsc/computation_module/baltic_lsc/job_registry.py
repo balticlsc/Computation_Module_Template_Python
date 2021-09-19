@@ -1,9 +1,14 @@
 import abc
 import os
 import threading
-from computation_module.api_access.job_controller import JobThread
-from computation_module.data_model.messages import Status, JobStatus, InputTokenMessage
-from computation_module.data_model.pins_configuration import Multiplicity, PinConfiguration
+from collections import defaultdict
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from balticlsc.computation_module.api_access.job_controller import JobThread
+
+from balticlsc.computation_module.data_model.messages import Status, JobStatus, InputTokenMessage
+from balticlsc.computation_module.data_model.pins_configuration import Multiplicity, PinConfiguration
 
 
 class IJobRegistry(metaclass=abc.ABCMeta):
@@ -83,13 +88,13 @@ class JobRegistry(IJobRegistry):
 
     def __init__(self, pins_configuration: []):
         self.__pins = pins_configuration
-        self.__tokens = {}
+        self.__tokens = defaultdict(list)
         self.__status = JobStatus(os.getenv('SYS_MODULE_INSTANCE_UID', 'module_uid'))
         self.__variables = {}
         self.__job_threads = []
         self.__semaphore = threading.Semaphore()
 
-    def register_thread(self, thread: JobThread):
+    def register_thread(self, thread: 'JobThread'):
         self.__semaphore.acquire()
         try:
             self.__job_threads.append(thread)
@@ -102,7 +107,7 @@ class JobRegistry(IJobRegistry):
         try:
             if 0 == len(self.__tokens[pin_name]):
                 return Status.IDLE
-            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name).token_multiplicity:
+            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name, False).token_multiplicity:
                 return Status.COMPLETED
             final_token = next((t for t in self.__tokens[pin_name] if any(not s.is_final for s in t.token_seq_stack)),
                                None)
@@ -142,8 +147,8 @@ class JobRegistry(IJobRegistry):
         try:
             if 0 == len(self.__tokens[pin_name]):
                 return None, None
-            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name).token_multiplicity:
-                return [next(self.__tokens[pin_name]).values], None
+            if Multiplicity.SINGLE == self.get_pin_configuration(pin_name, False).token_multiplicity:
+                return [token.values for token in self.__tokens[pin_name]], None
             max_table_counts = [0] * len(next(self.__tokens[pin_name]).token_seq_stack)
             for m in self.__tokens[pin_name]:
                 for i in range(len(m.token_seq_stack)):
@@ -209,37 +214,39 @@ class JobRegistry(IJobRegistry):
     def get_environment_variable(self, name: str) -> str:
         return os.getenv(name)
 
-    def get_pin_configuration(self, pin_name: str) -> PinConfiguration:
-        self.__semaphore.acquire()
+    def get_pin_configuration(self, pin_name: str, acquire: bool = True) -> PinConfiguration:
+        if acquire:
+            self.__semaphore.acquire()
         try:
-            return next(p for p in self.__pins if pin_name == p.pin_name)
+            return next(p for p in self._JobRegistry__pins if pin_name == p.pin_name)
         finally:
-            self.__semaphore.release()
+            if acquire:
+                self.__semaphore.release()
 
     def get_strong_pin_names(self) -> []:
         self.__semaphore.acquire()
         try:
-            return list(p.pin_name for p in self.__pins if 'true' == p.is_required)
+            return list(p.pin_name for p in self._JobRegistry__pins if 'true' == p.is_required)
         finally:
             self.__semaphore.release()
 
     def get_base_msg_uid(self):
         self.__semaphore.acquire()
         try:
-            return next(ltm.msg_uid for ltm in self.__tokens.values() if 0 != len(ltm))
+            return next(ltm for ltm in self._JobRegistry__tokens.values() if 0 != len(ltm))[0].msg_uid
         finally:
             self.__semaphore.release()
 
     def get_all_msg_uids(self):
         self.__semaphore.acquire()
         try:
-            return list(it.msg_uid for pit in self.__tokens.values() for it in pit)
+            return list(it.msg_uid for pit in self._JobRegistry__tokens.values() for it in pit)
         finally:
             self.__semaphore.release()
 
     def clear_messages(self, msg_ids):
         for msg_id in msg_ids:
-            tokens = next(ltm for ltm in self.__tokens.values() if any(msg_id == it.msg_uid for it in ltm))
+            tokens = next(ltm for ltm in self._JobRegistry__tokens.values() if any(msg_id == it.msg_uid for it in ltm))
             if tokens is not None:
                 message = next(msg for msg in tokens if msg_id == msg.msg_uid)
                 tokens.remove(message)

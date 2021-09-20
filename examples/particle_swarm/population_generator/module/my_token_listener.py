@@ -31,10 +31,10 @@ class MyTokenListener(TokenListener):
         self._registry.set_status(Status.WORKING)
         swarm_file_path = self._data.obtain_data_item('current swarm')
         with open(swarm_file_path) as swarm_file:
-            swarm = backend.Swarm(**{key: value.tolist() if isinstance(value, ndarray) else value for key, value
+            swarm = backend.Swarm(**{key: asarray(value) if isinstance(value, type([])) else value for key, value
                                      in json.load(swarm_file)})
         swarm.current_cost = asarray(list(json.loads(c)['value'] for c
-                                          in self._registry.get_pin_values('Population Fitness')))
+                                          in self._registry.get_pin_values('population fitness')))
         swarm.pbest_pos, swarm.pbest_cost = backend.compute_pbest(swarm)
         topology = Star()
         if numpy.min(swarm.pbest_cost) < swarm.best_cost:
@@ -49,7 +49,7 @@ class MyTokenListener(TokenListener):
                                       len(swarm.position) == len(swarm.position) - 1)
         self._data.send_data_item('next data set', data_set_handle, True)
         with open('swarm.json', 'w') as f:
-            json.dump({key: asarray(value) if isinstance(value, type([])) else value for key, value
+            json.dump({key: value.tolist() if isinstance(value, ndarray) else value for key, value
                        in swarm.__dict__.items()}, f)
         self._data.send_token('next swarm', 'swarm.json', True)
         self._data.finish_processing()

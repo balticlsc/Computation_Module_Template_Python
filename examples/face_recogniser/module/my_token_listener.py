@@ -5,11 +5,11 @@ import face_recognition
 from matplotlib import pyplot, patches
 from PIL import Image
 import numpy as np
-from computation_module.api_access.job_controller import init_job_controller, TokenListener
-from computation_module.baltic_lsc.data_handler import IDataHandler
-from computation_module.baltic_lsc.job_registry import IJobRegistry
-from computation_module.data_model.messages import Status
-from computation_module.utils.logger import logger
+from balticlsc.computation_module.api_access.job_controller import init_job_controller, TokenListener
+from balticlsc.computation_module.baltic_lsc.data_handler import IDataHandler
+from balticlsc.computation_module.baltic_lsc.job_registry import IJobRegistry
+from balticlsc.computation_module.data_model.messages import Status
+from balticlsc.computation_module.utils.logger import logger
 
 
 class MyTokenListener(TokenListener):
@@ -30,7 +30,6 @@ class MyTokenListener(TokenListener):
         pass
 
     def data_complete(self):
-        # Place your code here:
         self._registry.set_status(Status.WORKING)
         photos = self._data.obtain_data_item('Input')
         files = list(f for f in listdir(photos) if isfile(join(photos, f)))

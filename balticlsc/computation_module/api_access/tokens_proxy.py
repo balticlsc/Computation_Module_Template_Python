@@ -2,8 +2,8 @@ import json
 import os
 from http import HTTPStatus
 import requests
-from computation_module.data_model.messages import OutputTokenMessage, TokensAck
-from computation_module.utils.utils import snake_dict_to_camel_dict
+from balticlsc.computation_module.data_model.messages import OutputTokenMessage, TokensAck
+from balticlsc.computation_module.utils.utils import snake_dict_to_camel_dict
 
 
 class TokensProxy:

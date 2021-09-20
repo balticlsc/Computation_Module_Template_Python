@@ -8,9 +8,9 @@ from typing import Any
 from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure, PyMongoError
-from computation_module.baltic_lsc.data_handler import DataHandle
-from computation_module.data_model.pins_configuration import Multiplicity
-from computation_module.utils.logger import logger
+from balticlsc.computation_module.baltic_lsc.data_handle import DataHandle
+from balticlsc.computation_module.data_model.pins_configuration import Multiplicity
+from balticlsc.computation_module.utils.logger import logger
 
 
 def _download_single_file(document: Any, local_path: str) -> str:
@@ -123,15 +123,20 @@ class MongoDBHandle(DataHandle):
             self._clear_local()
 
     def check_connection(self, handle: {}):
+        '''
         host = self._pin_configuration.access_credential["Host"]
-        port = self._pin_configuration.access_credential["Port"]
+        port = int(self._pin_configuration.access_credential["Port"])
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         try:
             if not sock.connect_ex((host, port)):
-                logger.debug('Unable to reach ' + host + ':' + port)
+                logger.debug(f'Unable to reach {host}:{port}')
                 return -1
         finally:
             sock.close()
+        '''
+        logger.debug(f'MongoDB connection string: {self.__connection_string}')
+
         try:
             self.__mongo_client = MongoClient(self.__connection_string)
             self.__mongo_client.list_databases()

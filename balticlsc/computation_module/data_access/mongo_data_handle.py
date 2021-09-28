@@ -99,10 +99,10 @@ class MongoDBHandle(DataHandle):
                                                                  'fileContent': file_content})
                     handle = {'FileName': file_name, 'ObjectId': str(result.inserted_id), 'Database': database_name,
                               'Collection': collection_name}
-                    logger.debug('Uploading file from ' + local_path + 'to collection ' + collection_name +
+                    logger.debug('Uploading file from ' + local_path + ' to collection ' + collection_name +
                                  ' successful.')
                 case Multiplicity.MULTIPLE:
-                    logger.debug('Uploading directory from ' + local_path + 'to collection ' + collection_name)
+                    logger.debug('Uploading directory from ' + local_path + ' to collection ' + collection_name)
                     handle_list = []
                     for f in (f for f in listdir(local_path) if isfile(join(local_path, f))):
                         file_name = basename(f)

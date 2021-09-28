@@ -25,6 +25,7 @@ class DataHandle(metaclass=abc.ABCMeta):
     def __init__(self, pin_name: str, pins_configuration: []):
         self._pin_configuration = next(pc for pc in pins_configuration if pc.pin_name == pin_name)
         self._local_path = os.getenv('LOCAL_TMP_PATH', '/balticLSC_tmp')
+        self._create_local()
 
     @abc.abstractmethod
     def download(self, handle: {}) -> str:
@@ -38,9 +39,20 @@ class DataHandle(metaclass=abc.ABCMeta):
     def check_connection(self, handle: {}):
         pass
 
+    def _create_local(self):
+        if '.' in os.path.split(self._local_path)[-1]:
+            file_path = os.path.dirname(self._local_path)
+        else:
+            file_path = self._local_path
+
+        if isdir(file_path):
+            return
+
+        os.mkdir(file_path)
+
     def _clear_local(self):
         if isdir(self._local_path):
-            rmtree(self._local_path)
+            rmtree(self._local_path, ignore_errors=True)
         elif isfile(self._local_path):
             os.remove(self._local_path)
 

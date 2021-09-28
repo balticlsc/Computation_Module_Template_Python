@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="balticlsc_test",
-    version="0.0.19",
+    version="0.1.0",
     author="BalticLSC",
     author_email="Kamil.Rybinski@pw.edu.pl",
     description="Baltic LSC module old_scheme",
@@ -23,5 +23,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.10',
+    python_requires='>=3.8',
 )

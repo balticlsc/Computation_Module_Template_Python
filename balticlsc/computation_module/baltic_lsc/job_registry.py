@@ -233,20 +233,20 @@ class JobRegistry(IJobRegistry):
     def get_base_msg_uid(self):
         self.__semaphore.acquire()
         try:
-            return next(ltm.msg_uid for ltm in self.__tokens.values() if 0 != len(ltm))
+            return next(ltm for ltm in self._JobRegistry__tokens.values() if 0 != len(ltm))[0].msg_uid
         finally:
             self.__semaphore.release()
 
     def get_all_msg_uids(self):
         self.__semaphore.acquire()
         try:
-            return list(it.msg_uid for pit in self.__tokens.values() for it in pit)
+            return list(it.msg_uid for pit in self._JobRegistry__tokens.values() for it in pit)
         finally:
             self.__semaphore.release()
 
     def clear_messages(self, msg_ids):
         for msg_id in msg_ids:
-            tokens = next(ltm for ltm in self.__tokens.values() if any(msg_id == it.msg_uid for it in ltm))
+            tokens = next(ltm for ltm in self._JobRegistry__tokens.values() if any(msg_id == it.msg_uid for it in ltm))
             if tokens is not None:
                 message = next(msg for msg in tokens if msg_id == msg.msg_uid)
                 tokens.remove(message)

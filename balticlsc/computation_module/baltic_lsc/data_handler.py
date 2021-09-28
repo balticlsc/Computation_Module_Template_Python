@@ -95,8 +95,9 @@ class DataHandler(IDataHandler):
 
     def send_token(self, pin_name: str, values: str, is_final: bool, msg_uid: str = None) -> int:
         if msg_uid is None:
-            self.__registry.get_base_msg_uid()
-        return 0 if HTTPStatus.OK == self.__tokens_proxy.send_output_token(pin_name, values, msg_uid, is_final) else -1
+            msg_uid = self.__registry.get_base_msg_uid()
+
+        return 0 if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_output_token(pin_name, values, msg_uid, is_final) else -1
 
     def finish_processing(self) -> int:
         msg_ids = self.__registry.get_all_msg_uids()
@@ -106,15 +107,16 @@ class DataHandler(IDataHandler):
     def fail_processing(self, note: str):
         msg_ids = self.__registry.get_all_msg_uids()
         self.__registry.set_status(Status.FAILED)
-        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, True, True, note):
+        if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_ack_token(msg_ids, True, True, note):
             self.__registry.clear_messages(msg_ids)
             return 0
         return -1
 
     def send_ack_token(self, msg_ids: [], is_final: bool) -> int:
-        if HTTPStatus.OK == self.__tokens_proxy.send_ack_token(msg_ids, is_final):
+        if HTTPStatus.OK == self._DataHandler__tokens_proxy.send_ack_token(msg_ids, is_final):
             self.__registry.clear_messages(msg_ids)
             return 0
+
         return -1
 
     def check_connection(self, pin_name: str, handle: Dict[str, str] = None) -> int:

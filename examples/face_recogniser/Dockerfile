@@ -19,7 +19,7 @@ RUN apk add mongodb
 COPY ./requirements.txt requirements.txt
 RUN python -m pip install -r requirements.txt
 # Install the balticlsc package (it is not in the requirements file to make the testing process faster)
-RUN python -m pip install balticlsc-test==0.0.19
+RUN python -m pip install balticlsc-test==0.1.0
 # Copy the module content and run the API
 WORKDIR app
 COPY __init__.py module/__init__.py

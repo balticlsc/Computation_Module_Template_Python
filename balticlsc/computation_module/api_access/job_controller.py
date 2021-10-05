@@ -31,7 +31,7 @@ def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
             logger.debug('Token message received: ' + str(request.json))
             input_token = InputTokenMessage(
                 **{key: value if 'token_seq_stack' != key else list(
-                    SeqToken(**in_value) for in_value in json.loads(value))
+                    SeqToken(**in_value) for in_value in value)
                    for key, value in camel_dict_to_snake_dict(request.json).items() if key in
                    InputTokenMessage.__dict__['__annotations__']})
             __registry.register_token(input_token)

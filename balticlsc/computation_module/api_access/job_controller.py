@@ -37,31 +37,27 @@ def init_job_controller(listener_type: Type[TokenListener]) -> Flask:
             __registry.register_token(input_token)
             try:
                 result = __handler.check_connection(input_token.pin_name, json.loads(input_token.values))
-                match result:
-                    case 0:
-                        logger.debug(f'Running job for pin "{input_token.pin_name}"')
-                        job_thread = JobThread(input_token.pin_name, __listener_type(__registry, __handler),
-                                               __registry, __handler)
-                        __registry.register_thread(job_thread)
-                        pin_task = threading.Thread(target=job_thread.run)
-                        pin_task.daemon = True
-                        pin_task.start()
-                        return Response(status=200, mimetype='application/json')
-                    case - 1:
-                        ret__message = 'No response (' + input_token.pin_name + ').'
-                        logger.debug(ret__message)
-                        return Response(ret__message, status=404, mimetype='application/json')
-                        pass
-                    case - 2:
-                        ret__message = 'Unauthorized (' + input_token.pin_name + ').'
-                        logger.debug(ret__message)
-                        return Response(ret__message, status=401, mimetype='application/json')
-                        pass
-                    case - 3:
-                        ret__message = 'Invalid path (' + input_token.pin_name + ').'
-                        logger.debug(ret__message)
-                        return Response(ret__message, status=401, mimetype='application/json')
-                        pass
+                if 0 == result:
+                    logger.debug(f'Running job for pin "{input_token.pin_name}"')
+                    job_thread = JobThread(input_token.pin_name, __listener_type(__registry, __handler),
+                                           __registry, __handler)
+                    __registry.register_thread(job_thread)
+                    pin_task = threading.Thread(target=job_thread.run)
+                    pin_task.daemon = True
+                    pin_task.start()
+                    return Response(status=200, mimetype='application/json')
+                if - 1 == result:
+                    ret__message = 'No response (' + input_token.pin_name + ').'
+                    logger.debug(ret__message)
+                    return Response(ret__message, status=404, mimetype='application/json')
+                if - 2 == result:
+                    ret__message = 'Unauthorized (' + input_token.pin_name + ').'
+                    logger.debug(ret__message)
+                    return Response(ret__message, status=401, mimetype='application/json')
+                if - 3 == result:
+                    ret__message = 'Invalid path (' + input_token.pin_name + ').'
+                    logger.debug(ret__message)
+                    return Response(ret__message, status=401, mimetype='application/json')
                 return Response(status=400, mimetype='application/json')
             except BaseException as e:
                 logger.debug('Corrupted token: : ' + str(e))

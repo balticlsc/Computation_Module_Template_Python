@@ -130,13 +130,12 @@ class DataHandler(IDataHandler):
         if pin_name in self.__data_handles:
             return self.__data_handles[pin_name]
         access_type = self.__registry.get_pin_configuration(pin_name).access_type
-        match access_type:
-            case 'Direct':
-                raise ValueError('Cannot create a data handle for a pin of type \"Direct\"')
-            case '':
-                handle = MongoDBHandle(pin_name, self.__pins_configuration)
-            case _:
-                raise NotImplementedError('AccessType (' + access_type + ') not supported by the DataHandler, has to '
+        if 'Direct' == access_type:
+            raise ValueError('Cannot create a data handle for a pin of type \"Direct\"')
+        if 'MongoDB' == access_type:
+            handle = MongoDBHandle(pin_name, self.__pins_configuration)
+        else:
+            raise NotImplementedError('AccessType (' + access_type + ') not supported by the DataHandler, has to '
                                                                          'be handled manually')
         self.__data_handles[pin_name] = handle
         return handle

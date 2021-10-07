@@ -5,9 +5,8 @@ BalticLSC system in the python environment.
 ### Upload new version of the package
 ```
 python setup.py sdist
-twine upload dist/balticlsc_test-{version}.tar.gz
+twine upload dist/balticlsc-{version}.tar.gz
 ```
-
 
 ### Download the package
 You can simply download the package using `PyPI`:

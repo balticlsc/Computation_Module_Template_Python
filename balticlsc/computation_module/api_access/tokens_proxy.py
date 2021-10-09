@@ -17,10 +17,10 @@ class TokensProxy:
         output_token = OutputTokenMessage(pin_name, self._TokensProxy__sender_uid, values, msg_id, is_final)
         return HTTPStatus(requests.post(self._TokensProxy__batch_manager_token_url,
                                         data=json.dumps(snake_dict_to_camel_dict(output_token.__dict__)),
-                                        headers={'module-type': 'application/json'}).status_code)
+                                        headers={'content-type': 'application/json'}).status_code)
 
     def send_ack_token(self, msg_ids: [], is_final: bool, is_failed: bool = False, note: str = None) -> HTTPStatus:
         ack_token = TokensAck(self.__sender_uid, msg_ids, note, is_final, is_failed)
         return HTTPStatus(requests.post(self._TokensProxy__batch_manager_ack_url,
                                         data=json.dumps(snake_dict_to_camel_dict(ack_token.__dict__)),
-                                        headers={'module-type': 'application/json'}).status_code)
+                                        headers={'content-type': 'application/json'}).status_code)

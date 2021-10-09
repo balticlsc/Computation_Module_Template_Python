@@ -43,6 +43,8 @@ class MongoDBHandle(DataHandle):
         collection_name = handle['Collection']
         self.__prepare(handle['Database'], collection_name)
         local_path = ''
+        self._create_local()
+
         if Multiplicity.SINGLE == self._pin_configuration.data_multiplicity:
             if 'ObjectId' not in handle:
                 raise ValueError('Incorrect DataHandle.')
@@ -126,7 +128,7 @@ class MongoDBHandle(DataHandle):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            if not sock.connect_ex((host, port)):
+            if 0 != sock.connect_ex((host, port)):
                 logger.debug(f'Unable to reach {host}:{port}')
                 return -1
         finally:
